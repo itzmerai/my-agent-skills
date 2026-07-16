@@ -8,6 +8,23 @@ Each skill is a single `SKILL.md`: a name, a trigger-rich description, and a set
 
 > **Designed to pair with [`compound-engineering-plugin`](https://github.com/EveryInc/compound-engineering-plugin).** These skills are the human-in-the-loop *checkpoints* around that plugin's heavier automation. The plugin's `ce-plan` creates the plan, `ce-work` builds it, and `ce-code-review` produces the findings; the `my*` skills verify the ticket before planning, gate the plan against the task, and triage → fix → ship the review findings. They also work standalone if you don't use the plugin.
 
+## Quick start
+
+Install as a Claude Code plugin — two lines, works in **every project**, and the whole team uses the same install:
+
+```
+/plugin marketplace add itzmerai/my-agent-skills
+/plugin install mas
+```
+
+Restart Claude Code, then invoke any skill (namespaced under `mas`):
+
+```
+/mas:mytask   /mas:myreviewer   /mas:mypr   /mas:myfindings   /mas:myfix
+```
+
+Prefer bare command names like `/mytask`, or not using plugins? See [Install](#install) for the manual global option. Full details in [Installing as a plugin](#option-1--install-as-a-plugin-recommended-works-across-all-projects).
+
 ## Design principles
 
 All five skills share the same philosophy:
@@ -76,24 +93,51 @@ You can use this repo without the plugin — the `my*` skills don't depend on it
 
 ## Install
 
-### Claude Code
+This repo is a **Claude Code plugin marketplace**, so the easiest way to install — for you and your collaborators — is via `/plugin`. A manual global install is also documented below.
 
-Clone the repo once, then link the skills into your Claude Code skills directory. Use **`~/.claude/skills/`** to make them available in every project, or a project's **`.claude/skills/`** to scope them to one repo.
+### Option 1 — Install as a plugin (recommended, works across all projects)
+
+In Claude Code, add this repo as a marketplace and install the plugin:
+
+```
+/plugin marketplace add itzmerai/my-agent-skills
+/plugin install mas
+```
+
+That's it — no cloning, no symlinks. The skills are installed at the user level, so they're available in **every project**. Share those two lines with collaborators and they're set up in seconds.
+
+Plugin skills are namespaced under the short plugin name **`mas`** (short for *my-agent-skills*), so the commands are:
+
+```
+/mas:mytask
+/mas:myreviewer
+/mas:mypr
+/mas:myfindings
+/mas:myfix
+```
+
+To update to the latest version later:
+
+```
+/plugin marketplace update my-agent-skills
+/plugin update mas
+```
+
+### Option 2 — Manual global install (bare `/mytask` command names)
+
+Prefer the short, un-namespaced commands (`/mytask` instead of `/mas:mytask`)? Clone the repo and symlink the skills into your global skills directory:
 
 ```bash
-git clone https://github.com/itzmerai/my-agent-skills.git
-cd my-agent-skills
-
-# Global (all projects): symlink every skill into ~/.claude/skills/
+git clone https://github.com/itzmerai/my-agent-skills.git ~/my-agent-skills
 mkdir -p ~/.claude/skills
 for s in mytask myreviewer mypr myfindings myfix; do
-  ln -s "$PWD/skills/$s" ~/.claude/skills/"$s"
+  ln -s ~/my-agent-skills/skills/"$s" ~/.claude/skills/"$s"
 done
 ```
 
-Prefer copies over symlinks? Swap the `ln -s` line for `cp -r "$PWD/skills/$s" ~/.claude/skills/"$s"`. Want just one skill? Link only the one you need.
+Prefer copies over symlinks? Swap the `ln -s` line for `cp -r`. Want just one skill? Link only that one. Update later with `cd ~/my-agent-skills && git pull`.
 
-**Restart Claude Code** (or start a new session) so it picks up the new skills. Run `/help` or type `/` and you should see `/mytask`, `/myreviewer`, `/mypr`, `/myfindings`, and `/myfix` in the list.
+**After either option, restart Claude Code** (or start a new session). Run `/help` or type `/` and you should see the five skills listed.
 
 > Requires **Claude Code**. To also use the companion `ce-*` skills, install the [compound-engineering-plugin](#installing-the-plugin) above — but the `my*` skills work on their own too.
 
@@ -175,6 +219,9 @@ You get a copy-ready block with a one-line commit message and a `git push` comma
 ## Repository layout
 
 ```
+.claude-plugin/         # plugin + marketplace manifests (makes this repo installable via /plugin)
+├── plugin.json
+└── marketplace.json
 skills/
 ├── mytask/SKILL.md
 ├── myreviewer/SKILL.md

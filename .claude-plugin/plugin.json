@@ -1,0 +1,11 @@
+{
+  "name": "mas",
+  "description": "my-agent-skills — a clean pull-request workflow suite: verify tasks, review plans, triage review findings, fix them, and write the PR. Every skill is read-only for git. Pairs with compound-engineering-plugin.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Ryan Amasora"
+  },
+  "homepage": "https://github.com/itzmerai/my-agent-skills",
+  "repository": "https://github.com/itzmerai/my-agent-skills",
+  "license": "MIT"
+}

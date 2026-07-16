@@ -1,0 +1,28 @@
+{
+  "name": "my-agent-skills",
+  "owner": {
+    "name": "Ryan Amasora"
+  },
+  "metadata": {
+    "description": "Marketplace for the my-agent-skills suite — a clean PR-workflow skill set for Claude Code.",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "mas",
+      "description": "my-agent-skills — a clean pull-request workflow suite: verify tasks, review plans, triage review findings, fix them, and write the PR. Every skill is read-only for git. Pairs with compound-engineering-plugin.",
+      "author": {
+        "name": "Ryan Amasora"
+      },
+      "homepage": "https://github.com/itzmerai/my-agent-skills",
+      "tags": [
+        "pull-request",
+        "workflow-automation",
+        "code-review",
+        "developer-tools",
+        "ai-agents"
+      ],
+      "source": "./"
+    }
+  ]
+}
