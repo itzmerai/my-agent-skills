@@ -19,6 +19,7 @@ Print a one-liner commit message and a filled-in PR brief for the current change
    - `git status` to see staged/unstaged/untracked files.
    - `git diff` and `git diff --staged` to see the actual changes.
    - `git rev-parse --abbrev-ref HEAD` to get the current branch name for the push command.
+   - Determine the **base branch** the PR should target (used in Step 4): check the remote's default branch with `git symbolic-ref refs/remotes/origin/HEAD` and whether an integration branch like `develop` exists via `git branch -r`.
    - If there are no changes, say so and stop.
 2. Detect the project type (web vs mobile app vs both) from the files/stack (e.g. `package.json` + React/Next = web; `android/`, `ios/`, Flutter, React Native = app). This drives the build checklist line and the **Tested on** section — drop Android/iOS rows for a pure web project, keep them for mobile/cross-platform.
 3. Produce a **one-liner commit message** followed by a **push command**, in this exact form so they're copy-ready:
@@ -32,7 +33,21 @@ Print a one-liner commit message and a filled-in PR brief for the current change
    - Push command: fill `<current-branch-name>` with the real branch from `git rev-parse --abbrev-ref HEAD` — do not leave the placeholder. If the branch is a default branch (`main`/`master`), still print the command but note that the user may want to push to a feature branch instead.
    - These are **text for the user to copy** — never run them.
 
-4. Produce the PR brief using the template below. Fill it in based on the real diff:
+4. Determine **where to base the PR** — the branch it should merge *into* (its target) — and print how to open it, right after the push command:
+   - Choose the base branch:
+     - Prefer `develop` if it exists on the remote (the integration branch `/mytask` branches off) — check `git branch -r` for `origin/develop`.
+     - Otherwise use the remote's default branch (`main`/`master`) from `git symbolic-ref refs/remotes/origin/HEAD`.
+     - If the branch you just pushed *is* that base, don't open a PR against itself — flag it and suggest a feature branch instead.
+   - In the same fenced block as the commit/push, print a copy-ready open command with the real base and head filled in (base = target branch, head = the branch you pushed):
+
+     ```
+     gh pr create --base <base-branch> --head <current-branch-name> --web
+     ```
+
+   - Also print a no-`gh` fallback URL: `https://github.com/<owner>/<repo>/compare/<base-branch>...<current-branch-name>?expand=1` (fill `<owner>/<repo>` from `git remote get-url origin`). `--web` and the URL both open the PR page prefilled so the user can paste the brief below.
+   - **Copy-only** — never run these; `gh pr create` opens a PR (a state-changing action), so it's the user's to run.
+
+5. Produce the PR brief using the template below. Fill it in based on the real diff:
    - **Title**: brief but descriptive.
    - **Description**: simple, close, and brief — what it does, why, relevant context.
    - **Related Issue(s)**: leave the placeholder if none is known; do not invent issue numbers.
@@ -43,7 +58,7 @@ Print a one-liner commit message and a filled-in PR brief for the current change
 
 ## Output format
 
-Print the commit message and push command first (together in one fenced block), then the PR brief inside a fenced ```markdown block so the user can copy the raw markdown cleanly.
+Print the commit message, push command, and PR-open command (with the base branch filled in) together in one fenced block, then the PR brief inside a fenced ```markdown block so the user can copy the raw markdown cleanly.
 
 ## PR brief template
 

@@ -5,7 +5,7 @@
   },
   "metadata": {
     "description": "Marketplace for the my-agent-skills suite — a clean PR-workflow skill set for Claude Code.",
-    "version": "0.1.0"
+    "version": "0.1.1"
   },
   "plugins": [
     {
