@@ -33,19 +33,11 @@ Print a one-liner commit message and a filled-in PR brief for the current change
    - Push command: fill `<current-branch-name>` with the real branch from `git rev-parse --abbrev-ref HEAD` — do not leave the placeholder. If the branch is a default branch (`main`/`master`), still print the command but note that the user may want to push to a feature branch instead.
    - These are **text for the user to copy** — never run them.
 
-4. Determine **where to base the PR** — the branch it should merge *into* (its target) — and print how to open it, right after the push command:
-   - Choose the base branch:
-     - Prefer `develop` if it exists on the remote (the integration branch `/mytask` branches off) — check `git branch -r` for `origin/develop`.
-     - Otherwise use the remote's default branch (`main`/`master`) from `git symbolic-ref refs/remotes/origin/HEAD`.
-     - If the branch you just pushed *is* that base, don't open a PR against itself — flag it and suggest a feature branch instead.
-   - In the same fenced block as the commit/push, print a copy-ready open command with the real base and head filled in (base = target branch, head = the branch you pushed):
-
-     ```
-     gh pr create --base <base-branch> --head <current-branch-name> --web
-     ```
-
-   - Also print a no-`gh` fallback URL: `https://github.com/<owner>/<repo>/compare/<base-branch>...<current-branch-name>?expand=1` (fill `<owner>/<repo>` from `git remote get-url origin`). `--web` and the URL both open the PR page prefilled so the user can paste the brief below.
-   - **Copy-only** — never run these; `gh pr create` opens a PR (a state-changing action), so it's the user's to run.
+4. Determine **where to base the PR** — the branch it should merge *into* — and state it in plain words (a note, not a command):
+   - Prefer `develop` if it exists on the remote (the integration branch `/mytask` branches off) — check `git branch -r` for `origin/develop`.
+   - Otherwise use the remote's default branch (`main`/`master`) from `git symbolic-ref refs/remotes/origin/HEAD`.
+   - If the branch you just pushed *is* that base, note that a PR can't target itself and a feature branch is needed first.
+   - Say it in a short readable line right after the push command, e.g. **"➡️ Base this PR on `develop`"**, and fill the **Base branch** field in the PR brief below. Do not print a `gh`/git command for this.
 
 5. Produce the PR brief using the template below. Fill it in based on the real diff:
    - **Title**: brief but descriptive.
@@ -58,12 +50,14 @@ Print a one-liner commit message and a filled-in PR brief for the current change
 
 ## Output format
 
-Print the commit message, push command, and PR-open command (with the base branch filled in) together in one fenced block, then the PR brief inside a fenced ```markdown block so the user can copy the raw markdown cleanly.
+Print the commit message and push command together in one fenced block, then a one-line note stating which branch to base the PR on (e.g. "➡️ Base this PR on `develop`"), then the PR brief inside a fenced ```markdown block so the user can copy the raw markdown cleanly.
 
 ## PR brief template
 
 ```markdown
 # Pull Request Title (Brief but descriptive, e.g., "Fix login button alignment on Android and iOS")
+
+**Base branch:** <the branch this PR merges into, e.g. develop>
 
 ## Description
 <!-- Make it simple, close and brief, Provide a clear summary of what this PR does, why it's needed, and any relevant context or motivation. -->
