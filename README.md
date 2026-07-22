@@ -1,6 +1,6 @@
 # my-agent-skills
 
-A small, opinionated suite of **agent skills** for a clean pull-request workflow — from verifying a ticket, through reviewing the plan, triaging review findings, fixing them, and writing the PR.
+A small, opinionated suite of **agent skills** for a clean pull-request workflow — from verifying a ticket, through reviewing the plan, triaging review findings, fixing them, and writing the PR. It also bundles a few standalone, general-purpose skills (frontend design, SEO, and text humanizing) — see [Additional skills](#additional-skills).
 
 Each skill is a single `SKILL.md`: a name, a trigger-rich description, and a set of rules + steps the agent follows. They're written in the [Claude Code skill format](https://docs.claude.com/en/docs/claude-code/skills), but the instructions are plain Markdown and **portable to any agentic coding tool** — drop them into whatever your agent reads for custom instructions, or adapt the steps directly.
 
@@ -56,6 +56,18 @@ If you're not using the plugin, substitute your own planning/build/review steps 
 | **`/myfindings`** | Parses PR review findings, categorizes them by severity (P0–P3), counts and lists them, flags which fixes are required (P0–P2), notes logic impact, and asks you to confirm before proceeding. Gate only. |
 | **`/myfix`** | Implements the triaged findings in code — works P0→P2 (P3 optional), locates the affected code, applies fixes, and flags behavior/logic changes. Edits code; hands off to `/mypr` for git. |
 | **`/mypr`** | Generates a one-liner commit message, a push command, and a filled-in PR brief for the current changes — printed for copy-paste. Never runs git. |
+
+## Additional skills
+
+Alongside the PR-workflow core, this repo bundles a few **standalone, general-purpose skills** adapted from the community. They aren't part of the `/mytask → /mypr` pipeline — use them on their own. Like the core skills, none of them run git for you.
+
+| Command | What it does | Adapted from |
+|---|---|---|
+| **`/myfrontend-design`** | Builds distinctive, production-grade frontend UIs (components, pages, landing pages) with a bold, intentional aesthetic direction — avoids generic "AI slop" design. | [claude-code-templates](https://github.com/davila7/claude-code-templates) (MIT) |
+| **`/myseo-optimizer`** | On-page & technical SEO guidance: keyword strategy, meta tags, schema markup, Core Web Vitals, content structure, and an SEO checklist. | [claude-code-templates](https://github.com/davila7/claude-code-templates) (MIT) |
+| **`/myhumanizer`** | Removes tell-tale signs of AI-generated writing (inflated symbolism, promotional language, em-dash overuse, rule-of-three, AI vocabulary) and adds natural voice. | [@blader/humanizer](https://github.com/blader/humanizer) |
+
+> These skills are third-party adaptations, credited above and in each skill's `SKILL.md`. Their original terms apply.
 
 ## Pairing with compound-engineering-plugin
 
@@ -223,17 +235,23 @@ You get a copy-ready block with a one-line commit message and a `git push` comma
 ├── plugin.json
 └── marketplace.json
 skills/
-├── mytask/SKILL.md
+├── mytask/SKILL.md         # ── PR-workflow core ──
 ├── myreviewer/SKILL.md
 ├── mypr/SKILL.md
 ├── myfindings/SKILL.md
-└── myfix/SKILL.md
+├── myfix/SKILL.md
+├── myfrontend-design/SKILL.md   # ── additional standalone skills ──
+├── myseo-optimizer/SKILL.md
+└── myhumanizer/SKILL.md
 .branch-readmes/        # per-skill README templates that seed the skill/* branches (main only)
 ├── mytask.md
 ├── myreviewer.md
 ├── mypr.md
 ├── myfindings.md
-└── myfix.md
+├── myfix.md
+├── myfrontend-design.md
+├── myseo-optimizer.md
+└── myhumanizer.md
 ```
 
 ## Branches
@@ -242,12 +260,15 @@ skills/
 
 | Branch | Contains |
 |---|---|
-| `main` | All five skills |
+| `main` | All skills (the PR-workflow core + additional standalone skills) |
 | `skill/mytask` | `skills/mytask/` only |
 | `skill/myreviewer` | `skills/myreviewer/` only |
 | `skill/mypr` | `skills/mypr/` only |
 | `skill/myfindings` | `skills/myfindings/` only |
 | `skill/myfix` | `skills/myfix/` only |
+| `skill/myfrontend-design` | `skills/myfrontend-design/` only |
+| `skill/myseo-optimizer` | `skills/myseo-optimizer/` only |
+| `skill/myhumanizer` | `skills/myhumanizer/` only |
 
 Clone a single skill directly:
 
