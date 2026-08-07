@@ -1,6 +1,6 @@
 # my-agent-skills
 
-A small, opinionated suite of **agent skills** for a clean pull-request workflow — from verifying a ticket, through reviewing the plan, triaging review findings, fixing them, and writing the PR. It also bundles a few standalone, general-purpose skills (frontend design, SEO, and text humanizing) — see [Additional skills](#additional-skills).
+A small, opinionated suite of **agent skills** for a clean pull-request workflow — from verifying a ticket, through reviewing the plan, reviewing the pull request, triaging review findings, fixing them, and writing the PR. It also bundles a few standalone, general-purpose skills (frontend design, SEO, and text humanizing) — see [Additional skills](#additional-skills).
 
 Each skill is a single `SKILL.md`: a name, a trigger-rich description, and a set of rules + steps the agent follows. They're written in the [Claude Code skill format](https://docs.claude.com/en/docs/claude-code/skills), but the instructions are plain Markdown and **portable to any agentic coding tool** — drop them into whatever your agent reads for custom instructions, or adapt the steps directly.
 
@@ -20,14 +20,14 @@ Install as a Claude Code plugin — two lines, works in **every project**, and t
 Restart Claude Code, then invoke any skill (namespaced under `mas`):
 
 ```
-/mas:mytask   /mas:myreviewer   /mas:mypr   /mas:myfindings   /mas:myfix
+/mas:mytask   /mas:myreviewer   /mas:myprreview   /mas:mypr   /mas:myfindings   /mas:myfix
 ```
 
 Prefer bare command names like `/mytask`, or not using plugins? See [Install](#install) for the manual global option. Full details in [Installing as a plugin](#option-1--install-as-a-plugin-recommended-works-across-all-projects).
 
 ## Design principles
 
-All five skills share the same philosophy:
+All six skills share the same philosophy:
 
 - **You stay in control of git.** No skill ever runs a state-modifying git command (`commit`, `push`, `checkout -b`, …). They *recommend* and print ready-to-copy commands; you run them.
 - **Verify against reality, don't guess.** Skills inspect the actual code/diff before concluding.
@@ -45,6 +45,8 @@ Skills in **`this repo`** interleave with steps from the **`compound-engineering
 [this repo] [plugin]      [this repo]      [plugin]       [plugin]           [this repo]     [this repo] [this repo]
 ```
 
+**`/myprreview`** slots in wherever the change is already up as a pull request — use it in place of `(ce-code-review)` to get a fast, single-pass read of the PR, then feed its output straight into `/myfindings`.
+
 If you're not using the plugin, substitute your own planning/build/review steps — the `my*` skills only assume that (a) a task exists, (b) a plan exists to review, and (c) review findings exist to triage.
 
 ## Skills
@@ -53,6 +55,7 @@ If you're not using the plugin, substitute your own planning/build/review steps 
 |---|---|
 | **`/mytask`** | Classifies a task as bug / feature / invalid, verifies it against the actual codebase before any work starts, assesses impact, and recommends a Git branch name. Recommendation only. |
 | **`/myreviewer`** | Reviews a plan against its originating task — cross-checks every requirement, flags gaps, scope creep, and wrong assumptions, and gives a verdict (Aligned / Partially / Misaligned). Review only. |
+| **`/myprreview`** | Reviews a GitHub pull request in a single pass — gathers the diff via `gh`, then reports an overview, code quality notes, suggestions, and risks. No subagents, no workflow fan-out. Review only. |
 | **`/myfindings`** | Parses PR review findings, categorizes them by severity (P0–P3), counts and lists them, flags which fixes are required (P0–P2), notes logic impact, and asks you to confirm before proceeding. Gate only. |
 | **`/myfix`** | Implements the triaged findings in code — works P0→P2 (P3 optional), locates the affected code, applies fixes, and flags behavior/logic changes. Edits code; hands off to `/mypr` for git. |
 | **`/mypr`** | Generates a one-liner commit message, a push command, and a filled-in PR brief for the current changes — printed for copy-paste. Never runs git. |
@@ -123,6 +126,7 @@ Plugin skills are namespaced under the short plugin name **`mas`** (short for *m
 ```
 /mas:mytask
 /mas:myreviewer
+/mas:myprreview
 /mas:mypr
 /mas:myfindings
 /mas:myfix
@@ -142,14 +146,14 @@ Prefer the short, un-namespaced commands (`/mytask` instead of `/mas:mytask`)? C
 ```bash
 git clone https://github.com/itzmerai/my-agent-skills.git ~/my-agent-skills
 mkdir -p ~/.claude/skills
-for s in mytask myreviewer mypr myfindings myfix; do
+for s in mytask myreviewer myprreview mypr myfindings myfix; do
   ln -s ~/my-agent-skills/skills/"$s" ~/.claude/skills/"$s"
 done
 ```
 
 Prefer copies over symlinks? Swap the `ln -s` line for `cp -r`. Want just one skill? Link only that one. Update later with `cd ~/my-agent-skills && git pull`.
 
-**After either option, restart Claude Code** (or start a new session). Run `/help` or type `/` and you should see the five skills listed.
+**After either option, restart Claude Code** (or start a new session). Run `/help` or type `/` and you should see the skills listed.
 
 > Requires **Claude Code**. To also use the companion `ce-*` skills, install the [compound-engineering-plugin](#installing-the-plugin) above — but the `my*` skills work on their own too.
 
@@ -183,6 +187,20 @@ Plan: <the steps to review>
 ```
 
 You get: a requirement-by-requirement table, flagged gaps / scope creep / wrong assumptions, and a verdict — **Aligned / Partially Aligned / Misaligned** — with specific fixes to make before building.
+
+### `/myprreview` — review a pull request
+
+Pass a PR number or URL, optionally followed by extra instructions:
+
+```
+/myprreview 383
+/myprreview https://github.com/owner/repo/pull/383
+/myprreview 383 focus on the auth changes
+```
+
+You get: an overview of what the PR does, notes on code quality and style, specific suggestions, and potential issues/risks — focused on correctness, project conventions, performance, test coverage, and security. Run it with no argument and it lists the open PRs and asks which to review.
+
+Requires the [`gh` CLI](https://cli.github.com/), authenticated. The PR's diff is the only scope — for your uncommitted working changes, use Claude Code's built-in `/code-review` instead.
 
 ### `/myfindings` — triage review findings
 
@@ -222,7 +240,7 @@ You get a copy-ready block with a one-line commit message and a `git push` comma
 (ce-plan)      →  generate the plan
 /myreviewer    →  confirm the plan matches the task
 (ce-work)      →  build it
-(ce-code-review) → get findings
+/myprreview    →  review the PR (or use ce-code-review for a working diff)
 /myfindings    →  triage P0–P3, confirm what must be fixed
 /myfix         →  implement the P0–P2 fixes
 /mypr          →  get the commit message + PR brief to paste
@@ -237,6 +255,7 @@ You get a copy-ready block with a one-line commit message and a `git push` comma
 skills/
 ├── mytask/SKILL.md         # ── PR-workflow core ──
 ├── myreviewer/SKILL.md
+├── myprreview/SKILL.md
 ├── mypr/SKILL.md
 ├── myfindings/SKILL.md
 ├── myfix/SKILL.md
@@ -246,6 +265,7 @@ skills/
 .branch-readmes/        # per-skill README templates that seed the skill/* branches (main only)
 ├── mytask.md
 ├── myreviewer.md
+├── myprreview.md
 ├── mypr.md
 ├── myfindings.md
 ├── myfix.md
@@ -263,6 +283,7 @@ skills/
 | `main` | All skills (the PR-workflow core + additional standalone skills) |
 | `skill/mytask` | `skills/mytask/` only |
 | `skill/myreviewer` | `skills/myreviewer/` only |
+| `skill/myprreview` | `skills/myprreview/` only |
 | `skill/mypr` | `skills/mypr/` only |
 | `skill/myfindings` | `skills/myfindings/` only |
 | `skill/myfix` | `skills/myfix/` only |
