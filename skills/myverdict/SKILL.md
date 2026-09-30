@@ -90,7 +90,7 @@ Print exactly this structure:
 - **#5** — [reason a reviewer can read]
 
 ### ✅ Hand-off to /myfix
-- Address now: #1, #4
+- **Address now: #1, #4** ← the only set `/myfix` will touch
 - Defer as follow-up: #2 → [suggested ticket title]
 - Rejected: #3, #5
 
