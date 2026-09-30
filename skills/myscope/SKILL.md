@@ -74,6 +74,8 @@ Print exactly this structure:
 |---|---|---|---|
 | path/to/file | +12/-3 | ✅ in-scope / ⚠️ out-of-scope / 🔴 core-touched | [task requirement it serves, or why nothing covers it] |
 
+**Always render the Change Set as a markdown table** — one row per file, never a vertical list of `File:` / `Change:` / `Verdict:` blocks and never separator lines between entries. Keep `Why` to one short line (roughly 12 words) so the columns stay readable; if a file needs a longer explanation, put the row in the table and add the detail underneath as a bullet.
+
 ### 🧠 Core Functionality Check
 | Area | Touched? | Detail |
 |---|---|---|
