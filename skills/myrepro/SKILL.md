@@ -16,6 +16,7 @@ Turn a ticket into steps someone else could run. Every step is written twice ove
 - **Never guess a missing precondition.** If the ticket does not say which role, which environment, or which data, list it as a gap and ask. A plan built on invented setup is worse than no plan.
 - **Do not implement anything.** No fixes, no refactors, no state-modifying git. Reading code and running read-only commands or existing tests is fine.
 - **Write for someone else's hands.** Exact inputs, exact clicks or requests, exact expected strings and status codes.
+- **Always end with the step-by-step test.** It is the last section, after the gaps, and every step carries both an `Expected` and an `Actual (today)`. A plan that stops at the matrix leaves the reader without a walkthrough to actually follow.
 - **Print the plan in the chat/terminal** using the exact output format below.
 
 ## Steps
@@ -42,6 +43,13 @@ Turn a ticket into steps someone else could run. Every step is written twice ove
 8. **Suggest an automated test.** Detect the project's framework and existing test layout, then name the file path to add, the case name, and the assertion that would have caught this. Prefer the cheapest level that captures it — unit over integration, integration over end-to-end.
 
 9. **List the gaps.** Anything ambiguous, missing, or unverifiable, phrased as a question the ticket's author can answer.
+
+10. **Write the step-by-step test** — a walkthrough someone can follow start to finish, with an `Expected` and an `Actual (today)` on every step. Shape it to the ticket:
+    - **UI feature or UI/UX bug** — the click path. Name the route, the screen, and the element: *"Open `/dashboard` → expect a tab navigation above the table → actual: none."*
+    - **Backend, config, or CLI** — the exact commands, using the project's real tooling and paths (`docker compose exec app …`, `php artisan …`, `npm run …`).
+    - **Security or infrastructure that cannot be exercised here** — still write the steps and the expected result, put "unverifiable from this repo" in `Actual`, and name the environment that would settle it. Never skip the section because it cannot be run locally.
+
+    End it with a single copy-paste **run command** block in the project's own convention — the one command that executes the check.
 
 ## Output format
 
@@ -83,6 +91,19 @@ Print exactly this structure:
 
 ### ❓ Gaps — answer before testing
 - [missing precondition, ambiguous criterion, unverifiable claim]
+
+### ▶️ Step-by-step test
+**Type:** [UI walkthrough / command line / manual — not automatable here]
+
+| # | Step | Expected | Actual (today) |
+|---|---|---|---|
+| 1 | [exact action — the screen and element, or the exact command] | [what should happen] | [what happens right now] |
+| 2 | ... | ... | ... |
+
+Run command:
+```bash
+[copy-paste block using this project's own paths and tooling]
+```
 ````
 
 If the ticket is a **Feature**, the `Expect BEFORE` column is the baseline ("no such button", "returns the old shape") rather than a failure — keep the column, never drop it. If the BEFORE state turns out to be **not reproducible**, say so at the top and stop for a decision rather than writing an AFTER column for a defect that may not exist.
