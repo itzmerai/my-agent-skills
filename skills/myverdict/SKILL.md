@@ -12,7 +12,7 @@ Cross-verify review findings against the actual code before anyone acts on them.
 - **Verify, never assume.** A finding is a claim, not a fact. Open the cited code and confirm it before accepting. Reviewers — human or AI — report issues that are already handled, no longer present, or simply wrong.
 - **Every verdict cites evidence.** Name `file:line` and state what you found there. "Looks fine" is not a verdict.
 - **Do not fix anything.** Read-only on code and git (`git status`, `git diff`, `git log`, `git show` only). Accepted findings are handed to `/myfix`; you never edit, commit, or push.
-- **Do not write the review.** Producing the initial review is `/code-review` or `/myprreview`. This skill only judges findings that already exist.
+- **Do not write the review.** Producing the initial review is `/code-review` or `/mycodereview`. This skill only judges findings that already exist.
 - **Scope is measured against the task, impact against the implementation.** A correct, well-intentioned suggestion that the task never asked for is still out-of-scope.
 - **A rejection must carry a reason.** Never drop a finding silently.
 - **Print the result in the chat/terminal** using the exact output format below.
