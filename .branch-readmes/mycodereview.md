@@ -1,6 +1,6 @@
-# /myprreview
+# /mycodereview
 
-Part of the [**my-agent-skills**](https://github.com/itzmerai/my-agent-skills) suite — this branch contains **only** the `myprreview` skill. See [`main`](https://github.com/itzmerai/my-agent-skills/tree/main) for the full collection.
+Part of the [**my-agent-skills**](https://github.com/itzmerai/my-agent-skills) suite — this branch contains **only** the `mycodereview` skill. See [`main`](https://github.com/itzmerai/my-agent-skills/tree/main) for the full collection.
 
 Review a GitHub pull request in a **single pass** — gather the diff with `gh`, then produce a readable narrative review. No finder angles, no subagent fan-out, no workflow orchestration.
 
@@ -15,20 +15,20 @@ This skill restores the original single-pass behavior. The review instructions a
 ## Install (Claude Code)
 
 ```bash
-git clone --branch skill/myprreview https://github.com/itzmerai/my-agent-skills.git myprreview-skill
-ln -s "$PWD/myprreview-skill/skills/myprreview" ~/.claude/skills/myprreview
+git clone --branch skill/mycodereview https://github.com/itzmerai/my-agent-skills.git mycodereview-skill
+ln -s "$PWD/mycodereview-skill/skills/mycodereview" ~/.claude/skills/mycodereview
 ```
 
-Restart Claude Code, then type `/` and you should see `/myprreview`.
+Restart Claude Code, then type `/` and you should see `/mycodereview`.
 
 ## Usage
 
 Pass a PR number or URL, optionally followed by extra instructions:
 
 ```
-/myprreview 383
-/myprreview https://github.com/owner/repo/pull/383
-/myprreview 383 focus on the auth changes
+/mycodereview 383
+/mycodereview https://github.com/owner/repo/pull/383
+/mycodereview 383 focus on the auth changes
 ```
 
 Run it with no argument and it lists the open PRs (`gh pr list`) and asks which one to review.

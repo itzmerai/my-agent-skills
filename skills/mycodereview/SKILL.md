@@ -1,10 +1,10 @@
 ---
-name: myprreview
-description: Review a GitHub pull request; for your working diff use /code-review. Use when the user runs /myprreview, or asks to "review this PR", "review PR 123", "review this pull request", or pastes a GitHub PR URL and wants it reviewed. Single-pass narrative review via gh — no finder angles, no subagents, no workflow fan-out.
+name: mycodereview
+description: Review a GitHub pull request; for your working diff use /code-review. Use when the user runs /mycodereview, or asks to "review this PR", "review PR 123", "review this pull request", or pastes a GitHub PR URL and wants it reviewed. Single-pass narrative review via gh — no finder angles, no subagents, no workflow fan-out.
 argument-hint: "[pr number] [additional instructions]"
 ---
 
-# /myprreview — GitHub Pull Request Review
+# /mycodereview — GitHub Pull Request Review
 
 Restored from the built-in `/review` skill as it shipped in Claude Code 2.1.222,
 before 2.1.223 removed it and repointed `/review` at `code-review`.
@@ -19,7 +19,7 @@ instructions from the user.
 **If no target was given**, do this and stop:
 
 > Run `gh pr list` to show the open pull requests, then ask the user which one
-> to review (`/myprreview <number>`).
+> to review (`/mycodereview <number>`).
 
 ## Review prompt
 
