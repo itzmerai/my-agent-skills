@@ -29,7 +29,7 @@ Audit the complete change set against the task that caused it. This is the QA ga
 
 3. **Derive the scope boundary.** From the task, write down which files and areas the work legitimately requires *before* you look at verdicts. This is the yardstick.
 
-4. **Classify every file** as `in-scope`, `out-of-scope`, or `core-touched`. These are not exclusive — a required change to an auth module is both in-scope and core-touched, and still deserves a flag.
+4. **Classify every file** on two independent axes: a scope verdict (`in-scope` / `out-of-scope`), and whether it touches core functionality. They are separate columns because they answer different questions — a required change to an auth module is in-scope *and* core-touched, and the second fact is the one a reviewer needs surfaced.
 
 5. **Run the core-functionality check** explicitly, even when every file looks in-scope:
    - Entry points — `main`, `index`, app bootstrap, routers
@@ -70,11 +70,19 @@ Print exactly this structure:
 ### 📂 Change Set
 [N modified · N added · N deleted · N untracked]
 
-| File | Change | Verdict | Why |
-|---|---|---|---|
-| path/to/file | +12/-3 | ✅ in-scope / ⚠️ out-of-scope / 🔴 core-touched | [task requirement it serves, or why nothing covers it] |
+| File | Change | Verdict | Core functionality | Outside task | Why |
+|---|---|---|---|---|---|
+| path/to/file | +12/-3 | ✅ in-scope / ⚠️ out-of-scope | 🔴 [which area] / — | ⚠️ [core area hit that the task never asked for] / — | [task requirement it serves, or why nothing covers it] |
 
 **Always render the Change Set as a markdown table** — one row per file, never a vertical list of `File:` / `Change:` / `Verdict:` blocks and never separator lines between entries. Keep `Why` to one short line (roughly 12 words) so the columns stay readable; if a file needs a longer explanation, put the row in the table and add the detail underneath as a bullet.
+
+The last three columns answer three different questions, so never merge them:
+
+- **`Verdict`** — scope only: `✅ in-scope` or `⚠️ out-of-scope`. Did the task call for this file at all?
+- **`Core functionality`** — `—`, or 🔴 plus the area hit, named from the same list as the Core Functionality Check below (entry point, shared utility, public API, auth, DB schema, build/CI, dependencies). A file can be `✅ in-scope` and 🔴 at once; that is normal and not a problem by itself.
+- **`Outside task`** — the collateral column, and the one that matters most. `—` when every core area the file touches was required by the task. Otherwise ⚠️ plus the area the implementation reached into **without the task asking for it**: a shared helper rewritten on the way past, an auth check adjusted to make a test green, a migration altered as a side effect. This is unrequested blast radius, and each one needs either a justification tied to a requirement or a revert.
+
+A row that is `✅ in-scope` with a filled `Outside task` cell is the easiest kind of scope creep to miss — the file belongs in the diff, but part of what it changed does not.
 
 ### 🧠 Core Functionality Check
 | Area | Touched? | Detail |
