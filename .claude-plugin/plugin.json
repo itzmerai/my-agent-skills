@@ -1,7 +1,7 @@
 {
   "name": "mas",
   "description": "my-agent-skills — a clean pull-request workflow suite (verify tasks, review plans, review pull requests, triage findings, fix them, write the PR), plus standalone skills for frontend design, SEO, and humanizing AI text. Every skill is read-only for git. Pairs with compound-engineering-plugin.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "author": {
     "name": "Ryan Amasora"
   },
