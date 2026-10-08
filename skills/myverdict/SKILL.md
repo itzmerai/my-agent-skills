@@ -1,6 +1,6 @@
 ---
 name: myverdict
-description: Cross-verify PR review findings before acting on them. Use when the user runs /myverdict, whenever PR review feedback arrives with prioritized findings (P0, P1, P2, or similar severity labels such as critical/major/minor), and whenever the user asks to "triage the review", "check the findings", "verify the PR comments", or "decide which review items to fix". For each finding, validate that the issue is real by checking it against the actual code, then classify it on two axes. Scope: in-scope (directly related to the task) or out-of-scope (unrelated to the task, belongs in a separate ticket). Impact: fixes a defect in the current implementation (bug, regression, broken edge case, security issue), strengthens the current implementation (robustness, error handling, test coverage, clarity) without changing behavior, or adds no value to the task. Also confirms whether the assigned priority matches the actual severity and flags any mislabeled findings. Vets the required severities only — P0, P1 and P2 — and skips P3 unless asked. Produces a per-finding verdict (address now / defer as follow-up / reject with reason) so that only changes that strengthen the task or fix real defects get applied, and out-of-scope suggestions don't creep into the PR. Do NOT use for writing the initial PR review itself, or for auditing changes that were already made (use /myscope for that).
+description: Cross-verify PR review findings before acting on them. Use when the user runs /myverdict, whenever PR review feedback arrives with prioritized findings (P0, P1, P2, or similar severity labels such as critical/major/minor), and whenever the user asks to "triage the review", "check the findings", "verify the PR comments", or "decide which review items to fix". For each finding, validate that the issue is real by checking it against the actual code, then classify it on two axes. Scope: in-scope (directly related to the task) or out-of-scope (unrelated to the task, belongs in a separate ticket). Impact: fixes a defect in the current implementation (bug, regression, broken edge case, security issue), strengthens the current implementation (robustness, error handling, test coverage, clarity) without changing behavior, or adds no value to the task. Also confirms whether the assigned priority matches the actual severity and flags any mislabeled findings. Vets the required severities only — P0, P1 and P2 — and skips P3 unless asked. Any in-scope finding at P0, P1 or P2 is addressed now and handed to /myfix, whether it fixes a defect or only strengthens the implementation -- a missing test on code this task wrote is still this task's job, and is not deferred for being merely a coverage gap. Only a finding with no value at all is rejected in scope. Produces a per-finding verdict (address now / defer as follow-up / reject with reason) so that out-of-scope suggestions don't creep into the PR. Do NOT use for writing the initial PR review itself, or for auditing changes that were already made (use /myscope for that).
 ---
 
 # 🧪 /myverdict — Findings Cross-Verification
@@ -15,6 +15,7 @@ Cross-verify review findings against the actual code before anyone acts on them.
 - **Every verdict cites evidence.** Name `file:line` and state what you found there. "Looks fine" is not a verdict.
 - **Do not fix anything.** Read-only on code and git (`git status`, `git diff`, `git log`, `git show` only). Accepted findings are handed to `/myfix`; you never edit, commit, or push.
 - **Do not write the review.** Producing the initial review is `/code-review` or `/mycodereview`. This skill only judges findings that already exist.
+- **In-scope and P0–P2 means address now.** Not "if it is small", not "if it is a real defect". A finding about code this task wrote or changed gets fixed in this task, whether it corrects a defect or only strengthens what is there — a missing test, a thin assertion, an unhandled error path. Deferring a coverage gap because it is "only" a test is how the gap becomes permanent. The single in-scope exception is a finding with **no value**, which is rejected.
 - **Scope is measured against the task, impact against the implementation.** A correct, well-intentioned suggestion that the task never asked for is still out-of-scope.
 - **A rejection must carry a reason.** Never drop a finding silently.
 - **Print the result in the chat/terminal** using the exact output format below.
@@ -38,7 +39,7 @@ Cross-verify review findings against the actual code before anyone acts on them.
 
 5. **Classify impact** on the task:
    - **Fixes a defect** — bug, regression, broken edge case, security or data-loss risk.
-   - **Strengthens** — robustness, error handling, test coverage, clarity; no behavior change.
+   - **Strengthens** — robustness, error handling, **test coverage and assertion quality**, clarity; no behavior change. In scope, this still means *address now*; the impact axis only separates it from a defect for reporting, not for the verdict.
    - **No value** — stylistic preference, speculative future-proofing, or churn.
 
 6. **Audit the priority label.** Compare the assigned severity (P0–P3, critical/major/minor) against what the code actually shows, and flag both directions — an inflated P1 that is cosmetic, and a "minor" note that is really a data-loss bug. State the corrected level.
@@ -51,8 +52,10 @@ Cross-verify review findings against the actual code before anyone acts on them.
 
 | | **Fixes a defect** | **Strengthens** | **No value** |
 |---|---|---|---|
-| **In-scope** | ✅ Address now | ✅ Address now if small; otherwise defer | ❌ Reject |
+| **In-scope** | ✅ Address now | ✅ Address now | ❌ Reject |
 | **Out-of-scope** | ⏭️ Defer as follow-up — *unless* it is a security or data-loss risk, which is addressed now with a note explaining why the PR grew | ⏭️ Defer as follow-up | ❌ Reject |
+
+The in-scope row has no size escape hatch. A P2 test-strength gap on code this task touched is **Address now**, same as a P2 defect — the only in-scope verdict that is not "address now" is a rejection for no value. If a finding is genuinely large, say so in the evidence so `/myfix` can sequence it; do not downgrade it to a deferral.
 
 A finding whose real severity turns out to be P3 (step 6 may reveal an inflated label) still gets its verdict — you already did the work. The P3 filter applies to the *incoming* label, not to your corrected one.
 
@@ -60,7 +63,7 @@ Anything **Not reproducible** or **Already handled** is rejected regardless of i
 
 ## Verdict scale
 
-- **Address now** — real, in-scope, and the task is better for it. Goes to `/myfix`.
+- **Address now** — real and in-scope. Goes to `/myfix`. Covers defects *and* strengthening work: a missing test on this task's code qualifies.
 - **Defer as follow-up** — real and worth doing, but not this task's job. Becomes its own ticket.
 - **Reject** — not real, already handled, or adds nothing. Closed with a reason a reviewer can read.
 
