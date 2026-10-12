@@ -20,7 +20,7 @@ Install as a Claude Code plugin — two lines, works in **every project**, and t
 Restart Claude Code, then invoke any skill (namespaced under `mas`):
 
 ```
-/mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:myreviewer   /mas:myscope
+/mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:myreviewer   /mas:myscope   /mas:mychecklist
 /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix   /mas:mypr
 ```
 
@@ -49,12 +49,13 @@ Skills in **`this repo`** interleave with steps from the **`compound-engineering
          not a code problem — stale deploy, config,
          data, wrong role? the chain ends here
 
-── build & prove ───────────────────────────────────────────
-(ce-work)  →  /myscope     →  /myrepro     →  /mypr
- build        diff            run AFTER       commit msg
-              vs task         column          + PR brief
-[plugin]     [this repo]     [this repo]     [this repo]
-                                                  ↓  PR now exists
+── build & prove ───────────────────────────────────────────────────
+(ce-work)  →  /myscope     →  /mychecklist  →  /myrepro     →  /mypr
+ build        diff            ticket           run AFTER       commit msg
+              vs task         vs code          column          + PR brief
+[plugin]     [this repo]     [this repo]      [this repo]     [this repo]
+              └── crept in?   └── never built?
+                                                                 ↓  PR now exists
 ── review loop ─────────────────────────────────────────────
 /mycodereview →  /myfindings   →  /myverdict    →  /myfix
  review the      triage           is it real,       implement
@@ -68,6 +69,8 @@ Skills in **`this repo`** interleave with steps from the **`compound-engineering
 ```
 
 `/myrootcause` runs between `/mytask` and `/myrepro`, on bugs only: it reproduces in the environment the bug was reported in as part of diagnosing, which hands `/myrepro` the environment, role, commit and trigger it needs for the **BEFORE** column. When its verdict is *not a code problem*, the chain stops there — there is nothing for `/myfix` to do and no **AFTER** column to write.
+
+`/myscope` and `/mychecklist` are a pair, run at the same moment in opposite directions. `/myscope` reads the diff and asks what crept in; `/mychecklist` reads the ticket and asks what never got built. Neither one catches the other's failure.
 
 Two skills run twice on purpose. `/myrepro` is written early to capture the broken "before" state while the code is still broken — evidence you cannot recover once the fix lands — and its **AFTER** column is run later to prove the work landed. `/myscope` runs before the commit, and again after `/myfix`, because fixes drift too.
 
@@ -83,6 +86,7 @@ If you're not using the plugin, substitute your own planning/build/review steps 
 | **`/myrootcause`** | Verifies *why* a bug happened before the explanation is posted — checks the timeline (did the suspected change ship before the report?), the environment's actual commit and config, reproduces where it was reported rather than only locally, and requires the cause to explain every symptom including the behavior that still works. Returns Proven / Disproven / Unproven, and separately whether it is a code problem at all. Read-only. |
 | **`/myrepro`** | Turns a ticket into before/after verification steps — classifies it bug vs feature, writes exact repro or baseline steps, runs them against today's code to confirm the before state, and pairs every step with what to expect once the work is done. Read-only. |
 | **`/myreviewer`** | Reviews a plan against its originating task — cross-checks every requirement, flags gaps, scope creep, and wrong assumptions, and gives a verdict (Aligned / Partially / Misaligned). Review only. |
+| **`/mychecklist`** | Turns a ticket into one true/false line per requirement, then checks the branch against its base and marks each line ✅ Done / ⚠️ Partial / ❌ Not done with `file:line` evidence. Splits combined requirements, regroups misnested ones, ambers anything code can't settle, and ends with a Complete / Incomplete verdict. The mirror of `/myscope`. Review only. |
 | **`/myscope`** | Audits the finished diff against the task — per-file verdict (in-scope / out-of-scope / core-touched), flags unrelated refactors, formatting churn, dependency and config drift, and checks whether core functionality was touched. Audit only. |
 | **`/mycodereview`** | Reviews an already-opened GitHub pull request in a single pass — gathers the diff via `gh`, then reports an overview, code quality notes, suggestions, and risks. No subagents, no workflow fan-out. For your local working diff use `/code-review` instead. Review only. |
 | **`/myfindings`** | Parses PR review findings, categorizes them by severity (P0–P3), counts and lists them, flags which fixes are required (P0–P2), notes logic impact, and asks you to confirm before proceeding. Gate only. |
@@ -129,7 +133,7 @@ Once the plugin is installed, the `my*` skills slot in as gates around it:
 | Plugin step | Followed by | Why |
 |---|---|---|
 | `ce-plan` (creates a plan) | **`/myreviewer`** | Confirm the plan actually addresses the task before you let `ce-work` build it. |
-| `ce-work` (builds the change) | **`/myscope`** | Audit the resulting diff against the task before review — catch scope creep and accidental core-functionality edits early. |
+| `ce-work` (builds the change) | **`/myscope`** + **`/mychecklist`** | Audit the diff against the task to catch scope creep, then audit the ticket against the code to catch what was never built. Opposite directions; a branch can pass one and fail the other. |
 | `ce-code-review` (emits findings) | **`/myfindings`** → **`/myverdict`** → **`/myfix`** | Triage by severity, cross-verify each finding against the code and rule on it, then implement only what survives. |
 | — | **`/mytask`** (before `ce-plan`) | Verify the ticket is real and in scope before planning starts. |
 | — | **`/myrootcause`** (after `/mytask`, bugs only) | Prove *why* it broke before planning a fix, so the work is aimed at the real cause — and so non-code causes get ruled out before anyone opens a diff. |
@@ -162,6 +166,7 @@ Plugin skills are namespaced under the short plugin name **`mas`** (short for *m
 /mas:myrepro
 /mas:myreviewer
 /mas:myscope
+/mas:mychecklist
 /mas:mycodereview
 /mas:myfindings
 /mas:myverdict
