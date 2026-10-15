@@ -27,6 +27,8 @@ That analysis is in service of fixing. It does **not** produce a verdict, a rati
 
 - **Fix the plan, nothing else.** Edits the plan document only. Never writes production code, never stages, commits, or pushes.
 - **Repair, do not review.** No rating, no Aligned/Partially/Misaligned judgement of your own. Report what you changed and why.
+- **Every rating driver ends this run resolved.** The items under `/myreviewer`'s **Fix before building** are the reason the plan is not Aligned. Each one is fixed, or refused with the evidence that disproves it. None may be left unmentioned — an unaddressed driver returns verbatim on the next review.
+- **A right finding with a wrong remedy still gets fixed.** Reviewers spot real gaps and propose bad ways to close them. Rejecting the whole finding because its suggested fix would break a requirement throws out the gap too, and the next review raises it again. Close the gap your own way and say why theirs was not used.
 - **The reviewer's findings are an input, not the work list.** Re-read the ticket yourself and fix everything that is actually wrong — missing, misread, unnecessary, or internally inconsistent — whether or not the review named it.
 - **Never edit just to pass review.** Every change cites what justifies it: a ticket line, a PRD section, or a codebase pattern. A change that exists only to satisfy a reviewer is the failure mode this skill is built to avoid.
 - **Preserve what is already correct.** Targeted edits. A section that holds up is left untouched, even when it sits next to one that did not.
@@ -40,7 +42,12 @@ That analysis is in service of fixing. It does **not** produce a verdict, a rati
 
 ## Steps
 
-1. **Gather the inputs.** The plan file (`ce-plan` always writes one — find it in `docs/plans/`), the ticket, and `/myreviewer`'s findings. Then look for a PRD: `docs/prd/`, `PRD.md`, `docs/brainstorms/*-requirements.md`, `docs/requirements*`. State what you found, including "no PRD in this project". If the ticket or the plan is missing, ask — there is nothing to align against.
+1. **Gather the inputs.** The plan file (`ce-plan` always writes one — find it in `docs/plans/`), the ticket, and `/myreviewer`'s output. Read that output as the structure it is, not as loose prose:
+   - **`🧭 Plan vs Task`** — every row marked ❌ Gap, ⚠️ Scope creep or 🔧 Misalignment
+   - **`🚩 Issues`** — the same three, listed out
+   - **`✅ Verdict → Fix before building`** — **the rating drivers.** These are the specific items that made it Partially Aligned instead of Aligned. Every one of them must end this run either fixed or refused with evidence, or the next review returns the same rating.
+
+   Carry each rating driver through to a conclusion by name. A driver that is neither fixed nor explicitly refused is the loop restarting. Then look for a PRD: `docs/prd/`, `PRD.md`, `docs/brainstorms/*-requirements.md`, `docs/requirements*`. State what you found, including "no PRD in this project". If the ticket or the plan is missing, ask — there is nothing to align against.
 
 2. **Re-read the ticket line by line.** Extract every requirement and acceptance criterion as its own item, splitting combined ones. This is your yardstick, independent of the review.
 
@@ -56,7 +63,8 @@ That analysis is in service of fixing. It does **not** produce a verdict, a rati
    |---|---|---|
    | ✅ **Valid** | a real gap or error | fixed |
    | 🔁 **Already addressed** | the plan covers it | rejected — cite the section |
-   | ⛔ **Contradicts the ticket** | the fix would break a requirement | rejected — cite the ticket line |
+   | ⛔ **Wrong** | the plan is right and the finding is not | rejected — cite the ticket line that proves it |
+   | 🔧 **Right problem, wrong fix** | the gap is real, but the suggested remedy would break a requirement | **fixed another way** — say why the proposed remedy was not used |
    | ❓ **Ambiguous** | the ticket genuinely does not say | flagged for the author, plan untouched |
    | ⏭️ **Out of scope** | valid against the PRD, not this ticket | rejected — belongs in its own ticket |
 
@@ -82,8 +90,16 @@ Print exactly this structure:
 |---|---|---|---|
 | 1 | [short] | ✅ Valid | [what the ticket or codebase shows] |
 | 2 | [short] | 🔁 Already addressed | covered by [plan section] |
-| 3 | [short] | ⛔ Contradicts the ticket | ticket says "[line]" |
-| 4 | [short] | ❓ Ambiguous | [what the ticket fails to say] |
+| 3 | [short] | ⛔ Wrong | ticket says "[line]" |
+| 4 | [short] | 🔧 Right problem, wrong fix | gap closed via [approach]; theirs would break [requirement] |
+| 5 | [short] | ❓ Ambiguous | [what the ticket fails to say] |
+
+### 🎯 Rating drivers — why it was not Aligned
+| Driver (from *Fix before building*) | Outcome |
+|---|---|
+| [verbatim from the review] | ✅ fixed — [plan section] |
+| [verbatim] | ⛔ refused — [the evidence] |
+*Every driver appears here. An unresolved one means the next review returns the same rating.*
 
 ### 🕵️ Found on re-read — not raised in review
 - **[Missing / Misread / Unnecessary / Inconsistent]** — [what, and the ticket line it comes from]
