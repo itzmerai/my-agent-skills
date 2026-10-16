@@ -22,7 +22,8 @@ Restart Claude Code, then invoke any skill (namespaced under `mas`):
 ```
 /mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:myreviewer   /mas:myscope   /mas:mychecklist
 /mas:myplanfix
-/mas:myplanfix   /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix   /mas:mypr
+/mas:myloop
+/mas:myloop   /mas:myplanfix   /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix   /mas:mypr
 /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix   /mas:mypr
 ```
 
@@ -59,15 +60,17 @@ Skills in **`this repo`** interleave with steps from the **`compound-engineering
               └── crept in?   └── never built?
                                                                  ↓  PR now exists
 ── review loop ────────────────────────────────────────────────────────────────────────────────────────
-/mycodereview →  /myfindings   →  /myverdict    →  /myfix
- review the      triage           is it real,       implement
- open PR         P0–P3            in scope?         what survives
-[this repo]     [this repo]      [this repo]      [this repo]
-                                                       ↓
-                        /myfix ends with its own one-line commit
-                        message + push command — /mypr is only for
-                        opening the PR. Re-run /myscope + /myrepro
-                        first if the fixes were non-trivial.
+/mycodereview →  /myfindings   →  /myverdict    →  /myfix        →  /myscope
+ review the      triage           is it real,       implement        did the fixes
+ open PR         P0–P3            in scope?         what survives    stay in scope?
+[this repo]     [this repo]      [this repo]      [this repo]      [this repo]
+└──────────────────────────── /myloop runs all five ────────────────────────────┘
+                 ↑ severity corrected? back here once, then forward
+
+                 /myfix prints its own commit message; /myloop repeats the
+                 git commands in a final block so nothing needs scrolling
+                 back to. /mypr is only for opening the PR. Re-run
+                 /myrepro's AFTER column if the fixes were non-trivial.
 ```
 
 `/myrootcause` runs between `/mytask` and `/myrepro`, on bugs only: it reproduces in the environment the bug was reported in as part of diagnosing, which hands `/myrepro` the environment, role, commit and trigger it needs for the **BEFORE** column. When its verdict is *not a code problem*, the chain stops there — there is nothing for `/myfix` to do and no **AFTER** column to write.
@@ -89,6 +92,7 @@ If you're not using the plugin, substitute your own planning/build/review steps 
 | **`/myrepro`** | Turns a ticket into before/after verification steps — classifies it bug vs feature, writes exact repro or baseline steps, runs them against today's code to confirm the before state, and pairs every step with what to expect once the work is done. Read-only. |
 | **`/myreviewer`** | Reviews a plan against its originating task — cross-checks every requirement, flags gaps, scope creep, and wrong assumptions, and gives a verdict (Aligned / Partially / Misaligned). Review only. |
 | **`/mychecklist`** | Turns a ticket into one true/false line per requirement, then checks the branch against its base and marks each line ✅ Done / ⚠️ Partial / ❌ Not done with `file:line` evidence. Splits combined requirements, regroups misnested ones, ambers anything code can't settle, and ends with a Complete / Incomplete verdict. The mirror of `/myscope`. Review only. |
+| **`/myloop`** | Runs the whole review pipeline in one command — `/mycodereview` → `/myfindings` → `/myverdict` → `/myfix` → `/myscope` — printing each result before the next starts. Stops when nothing is P0–P2, re-verifies the triage when a severity is corrected (bounded to one correction per finding), scopes the audit to the address-now list, and ends with the audit, the git commands and any PR description fix in one block. Orchestration only; the five skills are unchanged. |
 | **`/myplanfix`** | Repairs a plan `/myreviewer` rated Partially Aligned or Misaligned. Rules each finding (valid / already addressed / contradicts the ticket / ambiguous / out of scope), re-reads the ticket line by line to catch what the review missed, grounds every edit in the ticket, PRD or codebase, decides what the plan left open, and never renumbers implementation units. Edits plan documents only. |
 | **`/myscope`** | Audits the finished diff against the task — per-file verdict (in-scope / out-of-scope / core-touched), flags unrelated refactors, formatting churn, dependency and config drift, and checks whether core functionality was touched. Audit only. |
 | **`/mycodereview`** | Reviews an already-opened GitHub pull request in a single pass — gathers the diff via `gh`, then reports an overview, code quality notes, suggestions, and risks. No subagents, no workflow fan-out. For your local working diff use `/code-review` instead. Review only. |
@@ -138,7 +142,7 @@ Once the plugin is installed, the `my*` skills slot in as gates around it:
 | `ce-plan` (creates a plan) | **`/myreviewer`** | Confirm the plan actually addresses the task before you let `ce-work` build it. |
 | `ce-plan` → `/myreviewer` returns Partially Aligned | **`/myplanfix`** | Repair the plan once, properly, instead of patching named findings until the review loop converges by luck. |
 | `ce-work` (builds the change) | **`/myscope`** + **`/mychecklist`** | Audit the diff against the task to catch scope creep, then audit the ticket against the code to catch what was never built. Opposite directions; a branch can pass one and fail the other. |
-| `ce-code-review` (emits findings) | **`/myfindings`** → **`/myverdict`** → **`/myfix`** | Triage by severity, cross-verify each finding against the code and rule on it, then implement only what survives. |
+| `ce-code-review` (emits findings) | **`/myfindings`** → **`/myverdict`** → **`/myfix`** | Triage by severity, cross-verify each finding against the code and rule on it, then implement only what survives. **`/myloop`** runs this whole chain from `/mycodereview` in one command. |
 | — | **`/mytask`** (before `ce-plan`) | Verify the ticket is real and in scope before planning starts. |
 | — | **`/myrootcause`** (after `/mytask`, bugs only) | Prove *why* it broke before planning a fix, so the work is aimed at the real cause — and so non-code causes get ruled out before anyone opens a diff. |
 | — | **`/myrepro`** (after `/myrootcause`) | Capture how to reproduce and verify it, while the before-state still exists. |
