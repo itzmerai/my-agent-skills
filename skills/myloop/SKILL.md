@@ -1,6 +1,6 @@
 ---
 name: myloop
-description: Run the PR review pipeline end to end — /mycodereview, /myfindings, /myverdict, /myfix, /myscope — printing each skill's full result before the next one starts. Takes the pull request as its argument (/myloop 1234) and resolves the ticket from context — the session first, where /mytask, /myrepro, /mychecklist or the plan document usually established it already, then the PR body or linked issue, and only asks when neither turns up anything; a ticket may also be named explicitly (/myloop 1234 ENG-1529). Use when the user runs /myloop, or asks to "run the review chain", "review this PR and fix it", "do the whole review flow", or "chain the review skills". Replaces running those five by hand after every review. Each step is the existing skill run exactly as written; this skill contributes no review, triage, or fix logic of its own. Control flow only: /mycodereview always continues to /myfindings so the triage states plainly whether there are findings; the chain stops after /myfindings when nothing is P0, P1 or P2; when /myverdict corrects a severity in either direction the chain returns to /myfindings for a second verification and then back through /myverdict, bounded so the same finding's severity can only be corrected once; and /myscope audits the fixes against /myverdict's address-now list rather than the original ticket, so already-committed files do not bury the actual changes. A finding about the pull request description is not a code change — /myfix states what to change as a before and after for the user to apply. Ends with one block: the /myscope result, the git commands, and the pull request description correction when one was flagged. Never commits or pushes. Do NOT use to run a single skill, or for the plan-side loop (use /myreviewer then /myplanfix).
+description: Run the PR review pipeline end to end — /mycodereview, /myfindings, /myverdict, /myfix, /myscope — printing each skill's full result before the next one starts. Takes one or more pull requests as its argument, each as owner/repo#number, a bare #number, or a URL — /myloop acme/api#142 acme/mobile#88. They may live in different repositories, and often do: one ticket of scope Both lands as an API pull request and a mobile pull request. With several, they move through the chain as a cohort rather than one at a time: every skill runs for each pull request still in play, every finding, ruling and fix is labelled with the pull request it belongs to, and a pull request that hits a stop condition drops out while the rest carry on. Each pull request's ticket is resolved on its own evidence. Two pull requests may legitimately share a ticket when one piece of work spans repositories; what is forbidden is assuming the second one's ticket from the first. A ticket is resolved from context — the session first, where /mytask, /myrepro, /mychecklist or the plan document usually established it already, then the PR body or linked issue, and only asks when neither turns up anything; a ticket may also be named explicitly (/myloop acme/api#142 ENG-1529). Use when the user runs /myloop, or asks to "run the review chain", "review this PR and fix it", "do the whole review flow", or "chain the review skills". Replaces running those five by hand after every review. Each step is the existing skill run exactly as written; this skill contributes no review, triage, or fix logic of its own. Control flow only: /mycodereview always continues to /myfindings so the triage states plainly whether there are findings; the chain stops after /myfindings when nothing is P0, P1 or P2; when /myverdict corrects a severity in either direction the chain returns to /myfindings for a second verification and then back through /myverdict, bounded so the same finding's severity can only be corrected once; and /myscope audits the fixes against /myverdict's address-now list rather than the original ticket, so already-committed files do not bury the actual changes. A finding about the pull request description is not a code change — /myfix states what to change as a before and after for the user to apply. Ends with one block: the /myscope result, the git commands, and the pull request description correction when one was flagged. Never commits or pushes. Do NOT use to run a single skill, or for the plan-side loop (use /myreviewer then /myplanfix).
 ---
 
 # 🔁 /myloop — Chained Review Pipeline
@@ -32,6 +32,9 @@ FINAL BLOCK    → /myscope result  →  git commands  →  PR description befor
 - **Establish the ticket before anything runs, and keep it in front of every step.** This is the chain's biggest failure mode. `/mycodereview` takes a pull request and nothing else — it has no notion of the ticket — so if the chain does not supply one, `/myverdict` has no scope axis and, in its own words, *"collapses into a code review"* (`skills/myverdict/SKILL.md:25`). `/myfix` then implements that drift and `/myscope` audits against it. Every step inherits whatever the first missing input caused.
 - **The ticket is the yardstick, not the pull request.** Restate the objective and the acceptance criteria when handing off to `/myverdict`, `/myfix` and `/myscope`. A finding can be perfectly correct about the code and still have nothing to do with what this ticket set out to do.
 - **A fix outside the ticket is only applied when the ticket cannot close without it.** That is the test — not "is it an improvement", not "is it nearby", not "while we are in here". `/myverdict` already defers out-of-scope findings; hold it to that and let the deferred ones become their own tickets. The one standing exception is `/myverdict`'s own: a security or data-loss risk is addressed now, with a note explaining why the PR grew.
+- **With several pull requests, never blend them.** Every finding, ruling, fix and audit line is labelled with its pull request — `[acme/api#142]` — and each is reviewed against its own ticket. A finding from one pull request appearing under another's heading is worse than no label at all, because it reads as evidence.
+- **A run can span repositories.** `acme/api#142` and `acme/mobile#88` are two repositories, two clones, two branches. Stages 1–4 reach them through `gh` and do not care. Stages 5 and 6 need the right clone on disk, and the right branch inside it.
+- **Two pull requests sharing a ticket is normal, not an error.** `/mytask` classifies a ticket's scope as App only, Backend-Dashboard only, or **Both** (`skills/mytask/SKILL.md:42`) — and a *Both* ticket is one piece of work landing as two pull requests in two repositories. Resolve each pull request's ticket from its own evidence; if they come back the same, that is the answer, not a mistake. The error would be assuming the second one's ticket from the first.
 - **Chain the skills, do not reimplement them.** Every step is the existing skill, invoked as written, with its own output format intact. `/myloop` adds no review criteria, no severity rules, no fix logic. If a step behaves wrongly, that is a bug in that skill — fix it there, never patch around it here.
 - **Print each result in full before starting the next step.** No summarising, no batching, no "findings omitted for brevity". The point of the chain is that you can read every stage.
 - **Announce each step** with a header line so the stream stays navigable: `── 1/5 · /mycodereview ──`.
@@ -44,7 +47,13 @@ FINAL BLOCK    → /myscope result  →  git commands  →  PR description befor
 
 ## Steps
 
-0. **Resolve the ticket.** The invocation is just the pull request — `/myloop 1234`. The ticket comes from context, in this order:
+0. **Resolve the ticket — one per pull request.** The invocation is one or more pull request references, each as `owner/repo#number`, a bare `#number` for the current repository, or a URL:
+
+   ```
+   /myloop acme/api#142 acme/mobile#88
+   ```
+
+   For **each**, the ticket comes from context, in this order:
 
    1. **This session.** Usually it is already here: the ticket `/mytask` classified, the one `/myrepro` wrote steps for, the one `/mychecklist` checked, or the plan in `docs/plans/`. Use it.
    2. **The PR itself** — its body, title, or linked issue.
@@ -54,7 +63,16 @@ FINAL BLOCK    → /myscope result  →  git commands  →  PR description befor
 
    Do not substitute the PR diff as the objective. "What the code does" and "what the ticket asked for" are the two things the chain exists to compare; collapsing them is what produces out-of-scope fixes.
 
-   A ticket can also be named explicitly — `/myloop 1234 ENG-1529` — which skips the resolution order.
+   A ticket can also be named explicitly — `/myloop acme/api#142 ENG-1529` — which skips the resolution order.
+
+   With several pull requests, resolve a ticket for **each one separately** and print the roster before anything runs:
+
+   ```
+   acme/api#142             →  ENG-1529  (from this session)
+   acme/mobile#88  →  ENG-1529  (linked issue — same ticket, scope Both)
+   ```
+
+   Resolve each pull request's ticket from its own evidence. Landing on the same ticket twice is a legitimate outcome for a cross-repo change; **inferring** the second from the first is not, because that is how a pull request ends up anchored to the wrong objective without anyone noticing.
 
 1. **`/mycodereview`** — review the PR. Print the result. Continue regardless of how many findings there are.
 
@@ -73,6 +91,34 @@ FINAL BLOCK    → /myscope result  →  git commands  →  PR description befor
 6. **`/myscope`** — audit the resulting working-tree diff. The yardstick is **`/myverdict`'s address-now list**, not the original ticket: the original work was already judged by `/mycodereview`, and measuring against the ticket drags already-committed files into the report and buries the fixes. The question here is narrower and more useful — *did `/myfix` change only what it was told to?* Keep the step 0 objective visible while auditing: an edit tracing to no acceptance criterion and to no address-now ruling is drift, whatever its merits.
 
 7. **Final block** — the three things worth having in one place at the end.
+
+## Several pull requests
+
+They travel as a **cohort that shrinks**, not one pull request at a time. Each skill runs for every pull request still in play; a pull request that hits a stop condition drops out and the rest carry on.
+
+```
+                acme/api#142   acme/mobile#88
+/mycodereview         ✓               ✓
+/myfindings           ✓          0 P0–P2 ✗        ← acme/mobile drops out here
+/myverdict            ✓
+/myfix                ✓                           ← needs that repo + branch
+/myscope              ✓
+```
+
+- **A stop condition is per pull request, never for the run.** `acme/mobile#88` ending at zero P0–P2 says so plainly and the chain continues with `acme/api#142`. Only when every pull request has dropped out does the run end.
+- **Stages 1–4 are read-only**, so they run across the whole active cohort in one pass each, grouped by pull request within the step's output.
+- **Stages 5 and 6 touch the working tree, so they go one pull request at a time, and the gate is repository *and* branch.** Before `/myfix`, confirm both: `git remote get-url origin` matches that pull request's repository, and `git branch --show-current` matches its head branch. In a cross-repo run the right clone may not be the working directory at all. If either check fails, **stop that pull request there** — report its address-now list, name the repository and branch it needs, and move to the next. Fixing one pull request's findings into another repository's working tree is the worst outcome this chain can produce, and it happens silently.
+- **Label everything.** Every heading, row and line carries its pull request — `[acme/api#142]`. A reader scrolling the middle of a long run should never have to work out which pull request they are looking at.
+- **One final block per pull request**, then a run summary:
+
+  ```
+  ── Run summary ─────────────────────────────────────────────────────
+  acme/api#142    · ENG-1529 — 3 fixed, 1 deferred · scope clean
+  acme/mobile#88  · ENG-1529 — stopped at /myfindings, no P0–P2
+  ```
+
+  When a pull request stops for a missing clone or branch, the summary says which:
+  `stopped before /myfix — needs acme/mobile on feat/ENG-1529`
 
 ## Final block
 

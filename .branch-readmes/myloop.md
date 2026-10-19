@@ -51,6 +51,46 @@ Each skill prints its full result before the next one starts. Nothing is summari
 
 **Past a stop condition, no steps are skipped.** Even when `/myverdict` rejected everything and `/myfix` has nothing to edit, the remaining steps run and say so.
 
+## Several pull requests at once
+
+Each PR is given as `owner/repo#number`, a bare `#number`, or a URL — and they can live in **different repositories**:
+
+```
+/myloop acme/api#142 acme/mobile#88
+```
+
+They travel as a **cohort that shrinks**. Each skill runs for every PR still in play; one that hits a stop condition drops out and the rest carry on.
+
+```
+                acme/api#142   acme/mobile#88
+/mycodereview         ✓               ✓
+/myfindings           ✓          0 P0–P2 ✗        ← acme/mobile drops out here
+/myverdict            ✓
+/myfix                ✓                           ← needs that repo + branch
+/myscope              ✓
+```
+
+**Two PRs sharing a ticket is normal, not an error.** `/mytask` classifies a ticket's scope as App only, Backend-Dashboard only, or **Both** — and a *Both* ticket is one piece of work landing as two PRs in two repos. Each PR's ticket is resolved from its own evidence; landing on the same one twice is the right answer. What's forbidden is *inferring* the second from the first, which is how a PR ends up anchored to the wrong objective unnoticed.
+
+The roster prints before anything runs, so a wrong anchor is visible immediately:
+
+```
+acme/api#142    →  ENG-1529  (from this session)
+acme/mobile#88  →  ENG-1529  (linked issue — same ticket, scope Both)
+```
+
+**Everything is labelled** — every heading, row and line carries its PR. Scrolling the middle of a long run should never leave you guessing which one you're reading.
+
+**Stages 1–4 are read-only**, reaching the PRs through `gh`, so they sweep the whole cohort in one pass each regardless of repo. **`/myfix` and `/myscope` touch the working tree**, so they go one PR at a time behind a **repo *and* branch** gate — `git remote get-url origin` and `git branch --show-current`. In a cross-repo run the right clone may not be the working directory at all. A PR that fails either check stops there and names the repo and branch it needs: fixing one PR's findings into another repository's working tree is the worst thing this chain could do, and it would do it silently.
+
+Each PR gets its own final block, then a run summary:
+
+```
+── Run summary ─────────────────────────────────────────────────────
+acme/api#142    · ENG-1529 — 3 fixed, 1 deferred · scope clean
+acme/mobile#88  · ENG-1529 — stopped at /myfindings, no P0–P2
+```
+
 ## The final block
 
 Three things in one place at the end, instead of scattered up the scrollback:
