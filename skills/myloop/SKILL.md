@@ -36,6 +36,7 @@ FINAL BLOCK    → /myscope result  →  git commands  →  PR description befor
 - **A run can span repositories.** `acme/api#142` and `acme/mobile#88` are two repositories, two clones, two branches. Stages 1–4 reach them through `gh` and do not care. Stages 5 and 6 need the right clone on disk, and the right branch inside it.
 - **Two pull requests sharing a ticket is normal, not an error.** `/mytask` classifies a ticket's scope as App only, Backend-Dashboard only, or **Both** (`skills/mytask/SKILL.md:42`) — and a *Both* ticket is one piece of work landing as two pull requests in two repositories. Resolve each pull request's ticket from its own evidence; if they come back the same, that is the answer, not a mistake. The error would be assuming the second one's ticket from the first.
 - **Chain the skills, do not reimplement them.** Every step is the existing skill, invoked as written, with its own output format intact. `/myloop` adds no review criteria, no severity rules, no fix logic. If a step behaves wrongly, that is a bug in that skill — fix it there, never patch around it here.
+- **Run straight through. Never ask permission to continue.** Invoking `/myloop` *is* the go-ahead for every step in it. Do not print "continue with /myverdict?", do not pause between steps, do not wait for a reply. `/myfindings` ends by asking whether P0–P2 are addressed (`skills/myfindings/SKILL.md:33`) — that question still prints, because it is part of its output and the skill is not modified, but the chain answers it by proceeding. The **only** things that halt a run are its stop conditions and the repository/branch gate before `/myfix`; everything else runs to the end so you can read the whole thing at once.
 - **Print each result in full before starting the next step.** No summarising, no batching, no "findings omitted for brevity". The point of the chain is that you can read every stage.
 - **Announce each step** with a header line so the stream stays navigable: `── 1/5 · /mycodereview ──`.
 - **`/mycodereview` always continues to `/myfindings`**, even with zero findings. The triage stating "no findings" is the confirmation worth having; a chain that dies silently at step 1 tells you nothing.
@@ -76,7 +77,7 @@ FINAL BLOCK    → /myscope result  →  git commands  →  PR description befor
 
 1. **`/mycodereview`** — review the PR. Print the result. Continue regardless of how many findings there are.
 
-2. **`/myfindings`** — triage the review's findings into P0–P3. Print the result.
+2. **`/myfindings`** — triage the review's findings into P0–P3. Print the result **including its closing confirmation question**, then continue without waiting for an answer. Standalone, that question is a gate; inside the chain, `/myloop` is the thing that already answered it.
    **Stop condition:** if nothing is P0, P1 or P2, the chain ends here. Say so plainly — "no P0–P2 findings; nothing to verdict" — and go to the final block if a PR description correction was raised, otherwise end.
 
 3. **`/myverdict`** — cross-verify the P0–P2 findings against the code and rule each one. **Hand it the step 0 ticket as the task.** Its scope axis is measured against that objective and those acceptance criteria, so a finding outside them is deferred rather than fixed. Print the result.
