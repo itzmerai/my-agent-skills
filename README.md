@@ -20,7 +20,7 @@ Install as a Claude Code plugin — two lines, works in **every project**, and t
 Restart Claude Code, then invoke any skill (namespaced under `mas`):
 
 ```
-/mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:myreviewer   /mas:myscope   /mas:mychecklist
+/mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:mytdd   /mas:myreviewer   /mas:myscope   /mas:mychecklist
 /mas:myplanfix
 /mas:myloop
 /mas:myloop   /mas:myplanfix   /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix   /mas:mypr
@@ -43,23 +43,23 @@ All nine workflow skills share the same philosophy:
 Skills in **`this repo`** interleave with steps from the **`compound-engineering-plugin`** (shown in parentheses):
 
 ```
-── plan ───────────────────────────────────────────────────────────────────────────────────────────────
-/mytask      →  /myrootcause  →  /myrepro     →  (ce-plan)  →  /myreviewer ⇄ /myplanfix
- verify         prove the        before/after    create        plan          repair the
- ticket         cause (bug)      test steps      plan          vs task       plan
-[this repo]     [this repo]      [this repo]     [plugin]      [this repo]   [this repo]
-                      ↓                                        └── Partially Aligned? repair, re-review
+── plan ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
+/mytask      →  /myrootcause  →  /myrepro     →  /mytdd      →  (ce-plan)  →  /myreviewer ⇄ /myplanfix
+ verify         prove the        before/after    red baseline    create        plan          repair the
+ ticket         cause (bug)      test steps      locked          plan          vs task       plan
+[this repo]     [this repo]      [this repo]     [this repo]    [plugin]      [this repo]   [this repo]
+                      ↓                                                       └── Partially Aligned? repair, re-review
          not a code problem — stale deploy, config,
          data, wrong role? the chain ends here
 
-── build & prove ──────────────────────────────────────────────────────────────────────────────────────
-(ce-work)  →  /myscope     →  /mychecklist  →  /myrepro     →  /mypr
- build        diff            ticket           run AFTER       commit msg
-              vs task         vs code          column          + PR brief
-[plugin]     [this repo]     [this repo]      [this repo]     [this repo]
+── build & prove ─────────────────────────────────────────────────────────────────────────────────────────────────────
+(ce-work)  →  /myscope     →  /mychecklist  →  /myrepro     →  /mytdd      →  /mypr
+ build        diff            ticket           run AFTER       AFTER run,      commit msg
+              vs task         vs code          column          hash-checked    + PR brief
+[plugin]     [this repo]     [this repo]      [this repo]     [this repo]    [this repo]
               └── crept in?   └── never built?
-                                                                 ↓  PR now exists
-── review loop ────────────────────────────────────────────────────────────────────────────────────────
+                                                                                ↓  PR now exists
+── review loop ───────────────────────────────────────────────────────────────────────────────────────────────────────
 /mycodereview →  /myfindings   →  /myverdict    →  /myfix        →  /myscope
  review the      triage           is it real,       implement        did the fixes
  open PR         P0–P3            in scope?         what survives    stay in scope?
@@ -77,7 +77,7 @@ Skills in **`this repo`** interleave with steps from the **`compound-engineering
 
 `/myscope` and `/mychecklist` are a pair, run at the same moment in opposite directions. `/myscope` reads the diff and asks what crept in; `/mychecklist` reads the ticket and asks what never got built. Neither one catches the other's failure.
 
-Two skills run twice on purpose. `/myrepro` is written early to capture the broken "before" state while the code is still broken — evidence you cannot recover once the fix lands — and its **AFTER** column is run later to prove the work landed. `/myscope` runs before the commit, and again after `/myfix`, because fixes drift too.
+Three skills run twice on purpose. `/myrepro` is written early to capture the broken "before" state while the code is still broken — evidence you cannot recover once the fix lands — and its **AFTER** column is run later to prove the work landed. `/myscope` runs before the commit, and again after `/myfix`, because fixes drift too. `/mytdd` is the automated sibling of `/myrepro`'s manual walkthrough: it writes the test while the code is still broken, hash-locks the red baseline, and runs the identical file afterwards — so the test cannot have quietly grown agreeable in between.
 
 `/mypr` runs **once**, to open the pull request — it sits before `/mycodereview` because a PR has to exist before it can be reviewed. Fix commits afterwards don't need another PR brief, so `/myfix` prints its own commit message and push command. If you would rather catch problems before pushing, run `ce-code-review` (or `/code-review`) on the working diff during **build & prove** — it feeds `/myfindings` exactly the same way.
 
@@ -90,6 +90,7 @@ If you're not using the plugin, substitute your own planning/build/review steps 
 | **`/mytask`** | Classifies a task as bug / feature / invalid, verifies it against the actual codebase before any work starts, assesses impact, and recommends a Git branch name. Recommendation only. |
 | **`/myrootcause`** | Verifies *why* a bug happened before the explanation is posted — checks the timeline (did the suspected change ship before the report?), the environment's actual commit and config, reproduces where it was reported rather than only locally, and requires the cause to explain every symptom including the behavior that still works. Returns Proven / Disproven / Unproven, and separately whether it is a code problem at all. Read-only. |
 | **`/myrepro`** | Turns a ticket into before/after verification steps — classifies it bug vs feature, writes exact repro or baseline steps, runs them against today's code to confirm the before state, and pairs every step with what to expect once the work is done. Read-only. |
+| **`/mytdd`** | Writes a throwaway discriminating test from the ticket *before* implementation, runs it for a red baseline, hashes it, then runs the identical test afterwards and compares. States outcomes without pinning the mechanism, and requires a trap — a case a plausible-but-wrong fix fails. A new-behaviour test that passes at baseline is reported as broken, not as a win. Copied into the test tree only to run, removed on any exit; never committed, never shipped. |
 | **`/myreviewer`** | Reviews a plan against its originating task — cross-checks every requirement, flags gaps, scope creep, and wrong assumptions, and gives a verdict (Aligned / Partially / Misaligned). Review only. |
 | **`/mychecklist`** | Turns a ticket into one true/false line per requirement, then checks the branch against its base and marks each line ✅ Done / ⚠️ Partial / ❌ Not done with `file:line` evidence. Splits combined requirements, regroups misnested ones, ambers anything code can't settle, and ends with a Complete / Incomplete verdict. The mirror of `/myscope`. Review only. |
 | **`/myloop`** | Runs the whole review pipeline in one command — and takes several PRs at once, across repositories (`owner/repo#number`), moving them through as a cohort that shrinks, every line labelled by PR — `/mycodereview` → `/myfindings` → `/myverdict` → `/myfix` → `/myscope` — printing each result before the next starts. Stops when nothing is P0–P2, re-verifies the triage when a severity is corrected (bounded to one correction per finding), scopes the audit to the address-now list, and ends with the audit, the git commands and any PR description fix in one block. Orchestration only; the five skills are unchanged. |
@@ -145,6 +146,7 @@ Once the plugin is installed, the `my*` skills slot in as gates around it:
 | `ce-code-review` (emits findings) | **`/myfindings`** → **`/myverdict`** → **`/myfix`** | Triage by severity, cross-verify each finding against the code and rule on it, then implement only what survives. **`/myloop`** runs this whole chain from `/mycodereview` in one command. |
 | — | **`/mytask`** (before `ce-plan`) | Verify the ticket is real and in scope before planning starts. |
 | — | **`/myrootcause`** (after `/mytask`, bugs only) | Prove *why* it broke before planning a fix, so the work is aimed at the real cause — and so non-code causes get ruled out before anyone opens a diff. |
+| — | **`/mytdd`** (after `/myrepro`, before `ce-work`) | Lock a red baseline the implementation cannot influence, so "it works now" is a comparison rather than an assertion. |
 | — | **`/myrepro`** (after `/myrootcause`) | Capture how to reproduce and verify it, while the before-state still exists. |
 
 `/myfindings` is built to consume review output like `ce-code-review`'s — paste its findings and it categorizes them into P0–P3. If your review tool already labels severities, `/myfindings` respects them; otherwise it infers and flags that it did.
@@ -172,6 +174,7 @@ Plugin skills are namespaced under the short plugin name **`mas`** (short for *m
 /mas:mytask
 /mas:myrootcause
 /mas:myrepro
+/mas:mytdd
 /mas:myreviewer
 /mas:myscope
 /mas:mychecklist
