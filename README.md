@@ -23,7 +23,7 @@ Restart Claude Code, then invoke any skill (namespaced under `mas`):
 /mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:mytdd   /mas:myreviewer   /mas:myscope   /mas:mychecklist
 /mas:myplanfix
 /mas:myloop
-/mas:myloop   /mas:myplanfix   /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix   /mas:mypr
+/mas:myloop   /mas:myplanfix   /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix   /mas:myatomicgit   /mas:mypr
 /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix   /mas:mypr
 ```
 
@@ -53,12 +53,12 @@ Skills in **`this repo`** interleave with steps from the **`compound-engineering
          data, wrong role? the chain ends here
 
 ── build & prove ─────────────────────────────────────────────────────────────────────────────────────────────────────
-(ce-work)  →  /myscope     →  /mychecklist  →  /myrepro     →  /mytdd      →  /mypr
- build        diff            ticket           run AFTER       AFTER run,      commit msg
-              vs task         vs code          column          hash-checked    + PR brief
-[plugin]     [this repo]     [this repo]      [this repo]     [this repo]    [this repo]
+(ce-work)  →  /myscope     →  /mychecklist  →  /myrepro     →  /mytdd      →  /myatomicgit  →  /mypr
+ build        diff            ticket           run AFTER       AFTER run,      group + commit   PR brief
+              vs task         vs code          column          hash-checked    commands
+[plugin]     [this repo]     [this repo]      [this repo]     [this repo]    [this repo]      [this repo]
               └── crept in?   └── never built?
-                                                                                ↓  PR now exists
+                                                                                                 ↓  PR now exists
 ── review loop ───────────────────────────────────────────────────────────────────────────────────────────────────────
 /mycodereview →  /myfindings   →  /myverdict    →  /myfix        →  /myscope
  review the      triage           is it real,       implement        did the fixes
@@ -100,6 +100,7 @@ If you're not using the plugin, substitute your own planning/build/review steps 
 | **`/myfindings`** | Parses PR review findings, categorizes them by severity (P0–P3), counts and lists them, flags which fixes are required (P0–P2), notes logic impact, and asks you to confirm before proceeding. Gate only. |
 | **`/myverdict`** | Cross-verifies each review finding against the actual code, classifies it by scope (in / out) and impact (fixes a defect / strengthens / no value), corrects mislabeled priorities, and rules address now / defer / reject. Read-only. |
 | **`/myfix`** | Implements the triaged findings in code — works P0→P2 (P3 optional), locates the affected code, applies fixes, and flags behavior/logic changes. Ends with a one-line commit message + push command for the fixes. Edits code, never runs git. |
+| **`/myatomicgit`** | Reads what the task changed, groups the files by function into implementation units, and prints ready-to-copy `git add`/`git commit` commands — one commit per unit, dependency-ordered so each leaves the tree coherent. Reuses the plan's U-IDs, mirrors the repo's own commit convention, and holds back local-only files instead of folding them in. Prints only. |
 | **`/mypr`** | Generates a one-liner commit message, a push command, and a filled-in PR brief for the current changes — printed for copy-paste. Never runs git. |
 
 ## Additional skills
@@ -182,6 +183,7 @@ Plugin skills are namespaced under the short plugin name **`mas`** (short for *m
 /mas:myfindings
 /mas:myverdict
 /mas:myfix
+/mas:myatomicgit
 /mas:mypr
 ```
 
