@@ -34,6 +34,8 @@ The test is a throwaway proof, not suite code. It never enters git and it is nev
 
 ## Steps
 
+**First, decide which run this is.** Look for `<staging>/<TICKET>.baseline.json`. If it exists, this is the **AFTER** run — go straight to step 7 and change nothing else: do not regenerate the test, do not re-resolve the staging folder or the runner. If it does not exist, this is the **BEFORE** run and the steps below run in order. If the user asks to re-baseline a ticket that already has one, print what the existing baseline holds and require explicit confirmation — overwriting it destroys the only record of the broken state, and that state cannot be recreated once the code is fixed.
+
 1. **Resolve the staging folder**, in this order — ask only as a last resort:
    1. A folder recorded in the project's `CLAUDE.md` → use it.
    2. An existing folder under `.claude/` already holding tests (commonly `.claude/discriminatingtest/`) → use it and say which.
