@@ -51,6 +51,8 @@ The test is a throwaway proof, not suite code. It never enters git and it is nev
 
    Record the resolved command in `CLAUDE.md`, including the flags the project needs — a memory limit, a config path, a container name. Those are learned once and should not be rediscovered.
 
+   **If the ticket is a role or permission gate** — acceptance criteria of the form *“X may, Y may not”* — this test proves the mechanism in-process but cannot prove the gate is wired into the stack as deployed, where a policy that exists but is never invoked would hide. Say so and name `/myprobe`, which baselines the same ticket against the running application. Both run at this same moment, before implementation; neither replaces the other.
+
 3. **Write the test.** Header first, in this shape — it is the artefact, not decoration:
 
    ```

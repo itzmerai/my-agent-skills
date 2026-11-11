@@ -92,6 +92,10 @@ Then, since git branch creation is the user's to run, print the ready-to-copy co
 git checkout develop && git pull && git checkout -b <suggested-branch-name>
 ```
 
+## Hand-off
+
+When the ticket is an **authorization or permission gate** — acceptance criteria of the form *“X may, Y may not”*, a role that should lose access, tenant isolation, or plan/module entitlement — name `/myprobe` alongside the branch recommendation, and say it must run **before** the fix. A probe first run afterwards cannot distinguish a working gate from an endpoint that was always refused, and that baseline cannot be recovered once the code changes.
+
 ## Goal
 
 Ensure that no unnecessary work is done, bugs are real and reproducible, features are truly missing, branch naming is clean and consistent, and development starts with clarity and confidence.
