@@ -31,6 +31,7 @@ The test is a throwaway proof, not suite code. It never enters git and it is nev
 - **Never run the whole suite.** Run only the generated file. The baseline is about this ticket.
 - **Never commit, stage or push.** Read-only on git except for status checks.
 - **Print everything in the chat/terminal.**
+- **Always end with the exact run command, ready to paste.** Both runs print it, with the real paths and flags filled in — never placeholders — so it never has to be asked for and the user can re-run the test without the skill. Print the paste-safe form `cp … && <runner> …; rm -f …`, **not** the `trap … EXIT` form: a trap pasted into an interactive shell fires when that shell exits, not when the run ends, so the copy would sit in the test tree until the terminal closes.
 
 ## Steps
 
@@ -142,6 +143,11 @@ The test is a throwaway proof, not suite code. It never enters git and it is nev
 - Turned green: n/n · Still failing: n · Regressions: n
 - [**Implementation proven** — every outcome green, no regressions]
 - [**Not proven** — what is still failing and what that says about the fix]
+
+### ▶️ Run it yourself
+```bash
+cp "<staging>/<file>" "<dest>/<file>" && <runner command> "<dest-relative path>"; rm -f "<dest>/<file>"
+```
 
 Test removed from the test tree. Nothing committed.
 ````

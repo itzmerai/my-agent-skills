@@ -35,6 +35,7 @@ Broken access control is unusual among bug classes: **from the privileged seat, 
 - **Clean up on any exit.** Cookie jars from `mktemp`, never a predictable path; fixtures removed via `trap … EXIT INT TERM`, never a trailing `rm` that a crash or Ctrl-C skips.
 - **Unresolvable infrastructure is a stop, not a question.** A question invites an answer from memory, and a remembered fixture is the exact failure this skill exists to prevent. Name the missing thing instead.
 - **Never commit, stage or push.** Read-only on git except inspection.
+- **Always end with the exact run command, ready to paste.** Both runs print it, with the real path filled in — never a placeholder — so it never has to be asked for. The probe is the user's evidence; they must be able to re-run it without the skill, and `echo "exit $?"` is part of the command because the three exit codes are the verdict.
 - **Print everything in the chat/terminal.**
 
 ## Steps
@@ -143,6 +144,11 @@ Broken access control is unusual among bug classes: **from the privileged seat, 
 - Arms correct: n/n · Exit `0`/`1`/`2`
 - [**Gate proven** — denied arms refused, allowed arms unaffected, side effect clean]
 - [**Not proven** — which arm is wrong and what that says about the fix]
+
+### ▶️ Run it yourself
+```bash
+bash <staging>/<TICKET>.probe.sh; echo "exit $?"
+```
 
 Fixtures and cookie jars removed. Nothing committed.
 ````
