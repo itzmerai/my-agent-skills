@@ -21,7 +21,7 @@ Restart Claude Code, then invoke any skill (namespaced under `mas`):
 
 ```
 /mas:myticket   /mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:mytdd   /mas:myprobe   /mas:myreviewer   /mas:myplanfix
-/mas:myscope   /mas:mychecklist   /mas:myatomicgit   /mas:mypr
+/mas:myscope   /mas:mychecklist   /mas:myatomicgit   /mas:mypr   /mas:myship
 /mas:myloop   /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix
 ```
 
@@ -56,6 +56,7 @@ Skills in **`this repo`** interleave with steps from the **`compound-engineering
               vs task         vs code          column          hash-checked     arms compared     commands
 [plugin]      [this repo]     [this repo]      [this repo]     [this repo]      [this repo]       [this repo]        [this repo]
               └── crept in?   └── never built?
+                                                                                                  └─ /myship runs both ──┘
                                                                                                  ↓  PR now exists
 ── review loop ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 /mycodereview →  /myfindings   →  /myverdict    →  /myfix        →  /myscope
@@ -101,6 +102,7 @@ If you're not using the plugin, substitute your own planning/build/review steps 
 | **`/myverdict`** | Cross-verifies each review finding against the actual code, classifies it by scope (in / out) and impact (fixes a defect / strengthens / no value), corrects mislabeled priorities, and rules address now / defer / reject. Read-only. |
 | **`/myfix`** | Implements the triaged findings in code — works P0→P2 (P3 optional), locates the affected code, applies fixes, and flags behavior/logic changes. Ends with a one-line commit message + push command for the fixes. Edits code, never runs git. |
 | **`/myatomicgit`** | Reads what the task changed, groups the files by function into implementation units, and prints ready-to-copy `git add`/`git commit` commands — one commit per unit, dependency-ordered so each leaves the tree coherent. Reuses the plan's U-IDs, mirrors the repo's own commit convention, and holds back local-only files instead of folding them in. Prints only. |
+| **`/myship`** | Runs `/myatomicgit` and `/mypr` together and prints **one** reconciled block — the atomic commit commands, a single `git push`, the base branch and the PR brief. Settles the four places the two outputs collide before anything reaches the screen: `/mypr`'s one-line commit message is suppressed rather than printed and retracted, one push survives, the brief's **Changes** list is exactly what the commands stage (never the whole working tree, so a held-back device-local file is never described as part of the PR), and `/myatomicgit`'s **Left unstaged** list is carried into the brief's notes. Sequencing and reconciliation only; neither sub-skill is modified and both still stand alone. |
 | **`/mypr`** | Generates a one-liner commit message, a push command, and a filled-in PR brief for the current changes — printed for copy-paste. Never runs git. |
 
 ## Additional skills
@@ -150,6 +152,7 @@ Once the plugin is installed, the `my*` skills slot in as gates around it:
 | — | **`/myrootcause`** (after `/mytask`, bugs only) | Prove *why* it broke before planning a fix, so the work is aimed at the real cause — and so non-code causes get ruled out before anyone opens a diff. |
 | — | **`/mytdd`** (after `/myrepro`, before `ce-work`) | Lock a red baseline the implementation cannot influence, so "it works now" is a comparison rather than an assertion. |
 | — | **`/myprobe`** (after `/mytdd`, before `ce-work`) | Prove the gate is genuinely open against the deployed stack — proxy, session, CSRF, middleware ordering — which is where a policy that exists but is never invoked hides from the in-process suite. |
+| — | **`/myship`** (after `ce-work`, before the PR) | Produce the commit commands and the PR brief as one block instead of two that contradict each other — the last step before the pull request exists. |
 | — | **`/myrepro`** (after `/myrootcause`) | Capture how to reproduce and verify it, while the before-state still exists. |
 
 `/myfindings` is built to consume review output like `ce-code-review`'s — paste its findings and it categorizes them into P0–P3. If your review tool already labels severities, `/myfindings` respects them; otherwise it infers and flags that it did.
@@ -186,6 +189,7 @@ Plugin skills are namespaced under the short plugin name **`mas`** (short for *m
 /mas:mychecklist
 /mas:myatomicgit
 /mas:mypr
+/mas:myship
 /mas:myloop
 /mas:mycodereview
 /mas:myfindings
@@ -368,6 +372,7 @@ skills/
 ├── mychecklist/SKILL.md
 ├── myatomicgit/SKILL.md
 ├── mypr/SKILL.md
+├── myship/SKILL.md
 ├── myloop/SKILL.md               # ── review loop ──
 ├── mycodereview/SKILL.md
 ├── myfindings/SKILL.md
@@ -389,6 +394,7 @@ skills/
 ├── mychecklist.md
 ├── myatomicgit.md
 ├── mypr.md
+├── myship.md
 ├── myloop.md                     # ── review loop ──
 ├── mycodereview.md
 ├── myfindings.md
@@ -418,6 +424,7 @@ skills/
 | `skill/mychecklist` | `skills/mychecklist/` only |
 | `skill/myatomicgit` | `skills/myatomicgit/` only |
 | `skill/mypr` | `skills/mypr/` only |
+| `skill/myship` | `skills/myship/` only |
 | `skill/myloop` | `skills/myloop/` only |
 | `skill/mycodereview` | `skills/mycodereview/` only |
 | `skill/myfindings` | `skills/myfindings/` only |
