@@ -12,13 +12,20 @@ Analyze a given task, ticket, or report and determine whether it is a **real bug
 - **NO git state-modifying commands.** Never run `git checkout -b`, `git branch`, `git switch -c`, `git commit`, `git push`, etc. You only *recommend* the branch name and print the command for the user to run themselves.
 - **Read-only inspection is expected.** Use `git status`, `git log`, `git branch`, code search (Grep/Glob/Read), logs, and running the app where relevant to verify claims against reality — do not classify from the ticket text alone.
 - **Verify before you conclude.** A bug is only "Confirmed" if you found evidence in the code/behavior. A feature is only "Missing" if you searched and could not find it. Say what you checked.
+- **Archive the ticket before you report.** Step 2 is an action this skill performs, not advice it prints. Nothing from the output format below is shown until the ticket is on disk — including the folder question, if one has to be asked. A question asked at the start costs a sentence; the same question after a full analysis makes the user read the report twice.
 - **Print the final analysis in the chat/terminal** using the exact output format below.
 
 ## Steps
 
 1. **Read the task.** Capture the ticket ID (if any), the described behavior, and any reproduction steps or acceptance criteria. If critical detail is missing, note the assumption you're making rather than guessing silently.
 
-2. **Archive the ticket.** Invoke `/myticket` before analysing anything. It writes the ticket to the project's ticket archive, resolves every mention of another ticket to the archived copy's path, and backfills older files that mention this one. Do not reimplement it here. Two things follow from running it first: a ticket this one depends on may already be on disk, and reading it is usually cheaper than classifying without it; and the analysis below has somewhere durable to land. Carry the archived path into the output. If the user declines the archive, say so once and continue — classification does not depend on it.
+2. **Archive the ticket — now, before step 3.** Run the `myticket` skill on the ticket you just read. Run it yourself, in this turn: this is a step you execute, never a line of output telling the user to run `/myticket` and never something left until the end. Do not reimplement what it does — it writes the file, resolves every mention of another ticket to the archived copy's path, and backfills older files that mention this one.
+
+   **If the archive folder does not exist yet, it will ask where to put it. Let that question happen here**, before a single line of analysis is printed. Answer nothing on the user's behalf and do not guess a folder to avoid asking.
+
+   Running it first pays twice: a ticket this one depends on may already be on disk, and reading it is cheaper than classifying without it; and the analysis below then has somewhere durable to land. Carry the archived path into the output.
+
+   Only the user declining stops this. If they do, say so in one line and continue — classification does not depend on the archive.
 
 3. **Classify** the task as one of:
    - 🐞 Bug / Issue

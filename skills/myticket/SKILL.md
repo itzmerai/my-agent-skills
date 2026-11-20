@@ -31,6 +31,7 @@ The backward pass is what makes export order stop mattering. File ENG-2451 on Mo
 - **Both passes run every time**, including on a re-export that changes nothing. They are a grep over small Markdown files; skipping them to save nothing is how an archive goes stale.
 - **The archive lives outside git.** Warn if the resolved folder sits inside a repository — an archive that gets committed is a ticket leak, and ticket text is the user's employer's, not the repo's.
 - **Ask once per project, never again.** The folder and the key set are recorded in `CLAUDE.md` the first time and read from there afterwards.
+- **When another skill calls this one, the folder question still comes first.** `/mytask` and `/myprobe` run this before they print anything, so asking here is an interruption of nothing. Never defer the question, never pick a folder silently to avoid asking, and never hand the question back to the calling skill to ask later — later means after a full report the user then has to re-read.
 - **Never commit, stage or push.** Read-only on git except inspection.
 - **Always print the absolute path of the file you wrote**, ready to paste — so it can be opened or handed to another skill without being asked for.
 
