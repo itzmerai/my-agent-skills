@@ -20,7 +20,7 @@ Install as a Claude Code plugin — two lines, works in **every project**, and t
 Restart Claude Code, then invoke any skill (namespaced under `mas`):
 
 ```
-/mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:mytdd   /mas:myprobe   /mas:myreviewer   /mas:myplanfix
+/mas:myticket   /mas:mytask   /mas:myrootcause   /mas:myrepro   /mas:mytdd   /mas:myprobe   /mas:myreviewer   /mas:myplanfix
 /mas:myscope   /mas:mychecklist   /mas:myatomicgit   /mas:mypr
 /mas:myloop   /mas:mycodereview   /mas:myfindings   /mas:myverdict   /mas:myfix
 ```
@@ -43,8 +43,8 @@ Skills in **`this repo`** interleave with steps from the **`compound-engineering
 ```
 ── plan ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 /mytask      →  /myrootcause  →  /myrepro      →  /mytdd        →  /myprobe     →  (ce-plan)  →  /myreviewer ⇄ /myplanfix
- verify         prove the        before/after     red baseline     live gate       create        plan          repair the
- ticket         cause (bug)      test steps       locked           baselined       plan          vs task       plan
+ verify +       prove the        before/after     red baseline     live gate       create        plan          repair the
+ file ticket    cause (bug)      test steps       locked           baselined       plan          vs task       plan
 [this repo]     [this repo]      [this repo]      [this repo]      [this repo]     [plugin]      [this repo]   [this repo]
                       ↓                                                       └── Partially Aligned? repair, re-review
          not a code problem — stale deploy, config,
@@ -85,6 +85,7 @@ If you're not using the plugin, substitute your own planning/build/review steps 
 
 | Command | What it does |
 |---|---|
+| **`/myticket`** | Keeps a durable local copy of every ticket that enters the workflow, one file per ticket, and turns each mention of another ticket into a path to the archived copy — so *“blocked by ENG-2449”* becomes something the next session can actually open. The body is kept verbatim; a mention with no archived copy is left exactly as written. Scans both directions on every run, so filing a ticket late backfills the older files that mention it. Matches only the ID shapes the project uses, so `UTF-8` and `SHA-256` are never mistaken for tickets, and never rewrites an ID inside a code fence. Runs automatically from `/mytask` and `/myprobe`, and standalone on its own; never fetches from a tracker. |
 | **`/mytask`** | Classifies a task as bug / feature / invalid, verifies it against the actual codebase before any work starts, assesses impact, and recommends a Git branch name. Recommendation only. |
 | **`/myrootcause`** | Verifies *why* a bug happened before the explanation is posted — checks the timeline (did the suspected change ship before the report?), the environment's actual commit and config, reproduces where it was reported rather than only locally, and requires the cause to explain every symptom including the behavior that still works. Returns Proven / Disproven / Unproven, and separately whether it is a code problem at all. Read-only. |
 | **`/myrepro`** | Turns a ticket into before/after verification steps — classifies it bug vs feature, writes exact repro or baseline steps, runs them against today's code to confirm the before state, and pairs every step with what to expect once the work is done. Read-only. |
@@ -144,6 +145,7 @@ Once the plugin is installed, the `my*` skills slot in as gates around it:
 | `ce-plan` → `/myreviewer` returns Partially Aligned | **`/myplanfix`** | Repair the plan once, properly, instead of patching named findings until the review loop converges by luck. |
 | `ce-work` (builds the change) | **`/myscope`** + **`/mychecklist`** | Audit the diff against the task to catch scope creep, then audit the ticket against the code to catch what was never built. Opposite directions; a branch can pass one and fail the other. |
 | `ce-code-review` (emits findings) | **`/myfindings`** → **`/myverdict`** → **`/myfix`** | Triage by severity, cross-verify each finding against the code and rule on it, then implement only what survives. **`/myloop`** runs this whole chain from `/mycodereview` in one command. |
+| — | **`/myticket`** (with `/mytask`) | File the ticket and resolve its references before planning, so a dependency named in the ticket is on disk rather than a string — and so the session running `/mychecklist` next week still has it. |
 | — | **`/mytask`** (before `ce-plan`) | Verify the ticket is real and in scope before planning starts. |
 | — | **`/myrootcause`** (after `/mytask`, bugs only) | Prove *why* it broke before planning a fix, so the work is aimed at the real cause — and so non-code causes get ruled out before anyone opens a diff. |
 | — | **`/mytdd`** (after `/myrepro`, before `ce-work`) | Lock a red baseline the implementation cannot influence, so "it works now" is a comparison rather than an assertion. |
@@ -172,6 +174,7 @@ That's it — no cloning, no symlinks. The skills are installed at the user leve
 Plugin skills are namespaced under the short plugin name **`mas`** (short for *my-agent-skills*), so the commands are:
 
 ```
+/mas:myticket
 /mas:mytask
 /mas:myrootcause
 /mas:myrepro
@@ -353,7 +356,8 @@ You get a copy-ready block with a one-line commit message and a `git push` comma
 ├── plugin.json
 └── marketplace.json
 skills/
-├── mytask/SKILL.md               # ── plan ──
+├── myticket/SKILL.md             # ── plan ──
+├── mytask/SKILL.md
 ├── myrootcause/SKILL.md
 ├── myrepro/SKILL.md
 ├── mytdd/SKILL.md
@@ -373,7 +377,8 @@ skills/
 ├── myseo-optimizer/SKILL.md
 └── myhumanizer/SKILL.md
 .branch-readmes/        # per-skill README templates that seed the skill/* branches (main only)
-├── mytask.md                     # ── plan ──
+├── myticket.md                   # ── plan ──
+├── mytask.md
 ├── myrootcause.md
 ├── myrepro.md
 ├── mytdd.md
@@ -401,6 +406,7 @@ skills/
 | Branch | Contains |
 |---|---|
 | `main` | All skills (the PR-workflow core + additional standalone skills) |
+| `skill/myticket` | `skills/myticket/` only |
 | `skill/mytask` | `skills/mytask/` only |
 | `skill/myrootcause` | `skills/myrootcause/` only |
 | `skill/myrepro` | `skills/myrepro/` only |
