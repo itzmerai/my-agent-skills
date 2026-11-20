@@ -95,6 +95,10 @@ The fenced block contains git commands and blank lines. Nothing else goes inside
 
 One `git add` per line rather than several paths on one, so a line can be dropped without re-editing the command. Add `git push` only when the user asks for it.
 
+## Hand-off
+
+When a **pull request brief is wanted too**, `/myship` runs this skill and `/mypr` together and prints one reconciled block instead of two that overlap: these commands survive intact, `/mypr`'s single-line commit message is dropped, one `git push` is printed, and the **Left unstaged** list above is carried into the brief's closing note. Run this skill alone when all you need is the commits.
+
 ## Goal
 
 Turn a finished implementation into a history someone can read. Each commit is one coherent change, ordered so the tree stands up at every step, with the files that were never yours to commit held back and named — and the whole thing printed as a block you copy, because the decision to run it stays yours.

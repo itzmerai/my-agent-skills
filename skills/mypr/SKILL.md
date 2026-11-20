@@ -32,6 +32,7 @@ Print a one-liner commit message and a filled-in PR brief for the current change
    - Commit message: keep it short, imperative mood, lowercase after any conventional-commit prefix if the repo uses one (check `git log` for the convention).
    - Push command: fill `<current-branch-name>` with the real branch from `git rev-parse --abbrev-ref HEAD` — do not leave the placeholder. If the branch is a default branch (`main`/`master`), still print the command but note that the user may want to push to a feature branch instead.
    - These are **text for the user to copy** — never run them.
+   - **This one-liner is what `/myship` suppresses.** When this skill runs as part of `/myship`, `/myatomicgit` has already produced an atomic commit split, and printing a single-line message beside it hands the reader a choice to resolve. Produce it as normal when running standalone; `/myship` drops it and keeps only the push.
 
 4. Determine **where to base the PR** — the branch it should merge *into* — and state it in plain words (a note, not a command):
    - Prefer `develop` if it exists on the remote (the integration branch `/mytask` branches off) — check `git branch -r` for `origin/develop`.
@@ -47,6 +48,10 @@ Print a one-liner commit message and a filled-in PR brief for the current change
    - **Testing Instructions**: concrete steps and edge cases for this specific change.
    - **Tested on**: include Android/iOS rows only if it's a mobile/cross-platform project; otherwise replace with what's relevant (browser/OS) or drop.
    - **Checklist**: check the boxes that are genuinely satisfied by the current change; leave the rest unchecked. Adjust the first line to the project type (web vs Android/iOS).
+
+## Hand-off
+
+When the **commits matter as much as the brief**, `/myship` runs `/myatomicgit` and this skill together and prints one reconciled block: the atomic commit commands instead of the one-liner above, a single push, this skill's base-branch line and brief, and the files `/myatomicgit` held back carried into the brief's notes. Run this skill alone when a single commit is genuinely all the change needs.
 
 ## Output format
 
