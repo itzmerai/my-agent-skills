@@ -24,7 +24,7 @@ This is the mirror of `/myscope`. `/myscope` asks *did I change anything I shoul
 
 ## Steps
 
-1. **Get the ticket.** The user pastes it, or names where it lives. If there is no ticket there is nothing to check against — ask rather than inferring requirements from the diff, which would just mark everything done.
+1. **Get the ticket.** The user pastes it, names where it lives, or it is already in the project's ticket archive (`.claude/tickets/`, or the folder recorded in `CLAUDE.md`) — check there first, and read any ticket it links to, since a linked ticket routinely carries requirements this one only alludes to. If there is no ticket there is nothing to check against — ask rather than inferring requirements from the diff, which would just mark everything done.
 
 2. **Find the base branch.** Use the base the user names. Otherwise try `develop` first — it is this suite's default, matching `/mytask`'s branch recommendation — then `origin/HEAD`, then `main`, then `master`. **Say which one you used.** Always diff with three dots so only this branch's own work shows:
 

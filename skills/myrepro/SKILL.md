@@ -25,30 +25,32 @@ Turn a ticket into steps someone else could run. Every step is written twice ove
 
 1. **Classify the ticket** as **Bug** or **Feature** from its content. If `/mytask` already classified it, reuse that verdict and say so rather than re-litigating it.
 
-2. **Extract what must be proven.** For a bug, the defect statement — what is broken, where, under what conditions. For a feature, every acceptance criterion in the ticket, listed and numbered so steps can map to them.
+2. **Check the ticket archive.** If the project keeps one (`.claude/tickets/`, or the folder recorded in `CLAUDE.md`), read this ticket's file and any ticket it links to. A linked ticket often carries the role names, the accounts or the prior repro that this one assumes you already have. Absent, skip it — never create the archive from here; `/myticket` owns that.
 
-3. **Locate the code path.** Find the routes, components, handlers, models, or jobs involved, so the steps reference real names. Note the entry point a tester would start from.
+3. **Extract what must be proven.** For a bug, the defect statement — what is broken, where, under what conditions. For a feature, every acceptance criterion in the ticket, listed and numbered so steps can map to them.
 
-4. **Pick the test surface, and the accounts.** Decide how a tester actually reaches this: **browser/UI**, **API client**, **CLI**, or **not exercisable here**. If a browser can reach it at all the surface is UI -- that includes role and permission bugs, data bugs with a visible symptom, and anything a user would notice. Then find the logins: search the project's seeders, factories, fixtures, `.env.example`, and setup docs, and record the file and line for each. For a role-based ticket pick **two** -- the role the ticket is about, and a control role that should behave differently. That contrast is what proves the bug is about permissions rather than about the page.
+4. **Locate the code path.** Find the routes, components, handlers, models, or jobs involved, so the steps reference real names. Note the entry point a tester would start from.
 
-5. **Write the BEFORE state.**
+5. **Pick the test surface, and the accounts.** Decide how a tester actually reaches this: **browser/UI**, **API client**, **CLI**, or **not exercisable here**. If a browser can reach it at all the surface is UI -- that includes role and permission bugs, data bugs with a visible symptom, and anything a user would notice. Then find the logins: search the project's seeders, factories, fixtures, `.env.example`, and setup docs, and record the file and line for each. For a role-based ticket pick **two** -- the role the ticket is about, and a control role that should behave differently. That contrast is what proves the bug is about permissions rather than about the page.
+
+6. **Write the BEFORE state.**
    - **Bug** — preconditions, environment, account/role, data fixtures, then exact actions that trigger the defect, and the observed broken behavior versus what the ticket says should happen.
    - **Feature** — the baseline: what happens today, whether that is "the feature does not exist", "the old behavior does X", or "the button is absent".
 
-6. **Try to run it.** Reproduce the bug or capture the baseline using the project's own tooling — dev server, CLI, an existing test, a targeted query. Record the outcome as *confirmed*, *not reproducible*, or *not runnable here*, with the command used.
+7. **Try to run it.** Reproduce the bug or capture the baseline using the project's own tooling — dev server, CLI, an existing test, a targeted query. Record the outcome as *confirmed*, *not reproducible*, or *not runnable here*, with the command used.
 
-7. **Write the AFTER state**, mapped one-to-one to the defect or to each acceptance criterion. Cover:
+8. **Write the AFTER state**, mapped one-to-one to the defect or to each acceptance criterion. Cover:
    - The happy path for each criterion
    - **Edge cases** — empty, zero, maximum, boundary, duplicate, concurrent, offline
    - **Negative paths** — invalid input, missing permission, expired session, wrong state — and what the user should see instead of a crash
 
-8. **Add regression checks.** Name the nearby behavior most likely to break: anything sharing the touched utility, route, component, table, or migration. Each still gets a before/after pair — for these, the two are usually *identical*, and that is exactly what makes them regression checks.
+9. **Add regression checks.** Name the nearby behavior most likely to break: anything sharing the touched utility, route, component, table, or migration. Each still gets a before/after pair — for these, the two are usually *identical*, and that is exactly what makes them regression checks.
 
-9. **Suggest an automated test.** Detect the project's framework and existing test layout, then name the file path to add, the case name, and the assertion that would have caught this. Prefer the cheapest level that captures it — unit over integration, integration over end-to-end.
+10. **Suggest an automated test.** Detect the project's framework and existing test layout, then name the file path to add, the case name, and the assertion that would have caught this. Prefer the cheapest level that captures it — unit over integration, integration over end-to-end.
 
-10. **List the gaps.** Anything ambiguous, missing, or unverifiable, phrased as a question the ticket's author can answer.
+11. **List the gaps.** Anything ambiguous, missing, or unverifiable, phrased as a question the ticket's author can answer.
 
-11. **Write the full step-by-step repro** — a walkthrough someone with no prior context can follow start to finish, with an `Expected` and an `Actual (today)` on every step. Shape it to the surface from step 4:
+12. **Write the full step-by-step repro** — a walkthrough someone with no prior context can follow start to finish, with an `Expected` and an `Actual (today)` on every step. Shape it to the surface from step 5:
 
     - **Browser / UI — the default whenever a browser can reach it.** Begin at a cold start and end at a clean one:
       1. the command that brings the app up, and the base URL

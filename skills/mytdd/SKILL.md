@@ -44,7 +44,7 @@ The test is a throwaway proof, not suite code. It never enters git and it is nev
 
    Prefer the `.claude/` of the **workspace root** over a single repo's, so one folder serves every sub-project. Confirm it sits outside any git repository; if it does not, say so — a staging folder inside a repo will be committed.
 
-2. **Read the ticket and identify the surface.** Which code the change lands in decides the runner, the destination directory, the filename convention and the command. Detect rather than assume — a workspace can hold several:
+2. **Read the ticket and identify the surface.** Check the project's ticket archive first (`.claude/tickets/`, or the folder recorded in `CLAUDE.md`): it may hold this ticket and the ones it links to, which is where the discriminating case often comes from. Which code the change lands in decides the runner, the destination directory, the filename convention and the command. Detect rather than assume — a workspace can hold several:
 
    | surface | runner | runs | filename |
    |---|---|---|---|

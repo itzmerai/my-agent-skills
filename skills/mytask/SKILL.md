@@ -18,12 +18,14 @@ Analyze a given task, ticket, or report and determine whether it is a **real bug
 
 1. **Read the task.** Capture the ticket ID (if any), the described behavior, and any reproduction steps or acceptance criteria. If critical detail is missing, note the assumption you're making rather than guessing silently.
 
-2. **Classify** the task as one of:
+2. **Archive the ticket.** Invoke `/myticket` before analysing anything. It writes the ticket to the project's ticket archive, resolves every mention of another ticket to the archived copy's path, and backfills older files that mention this one. Do not reimplement it here. Two things follow from running it first: a ticket this one depends on may already be on disk, and reading it is usually cheaper than classifying without it; and the analysis below has somewhere durable to land. Carry the archived path into the output. If the user declines the archive, say so once and continue — classification does not depend on it.
+
+3. **Classify** the task as one of:
    - 🐞 Bug / Issue
    - ✨ Feature Request
    - ❌ Invalid / Already Resolved
 
-3. **Verify** against the actual codebase:
+4. **Verify** against the actual codebase:
 
    **🐞 If it's a Bug:**
    - Reproduce it if steps are provided (run the app / flow, hit the API, inspect the UI).
@@ -36,19 +38,19 @@ Analyze a given task, ticket, or report and determine whether it is a **real bug
    - Search the codebase (UI, backend/API, related modules) to see if it already exists fully, partially, or not at all.
    - → Conclude **New Feature**, **Already Implemented**, or **Needs Enhancement**, with an explanation of current system behavior.
 
-4. **Determine the project scope.** Identify whether the task touches:
+5. **Determine the project scope.** Identify whether the task touches:
    - 📱 **App only** — mobile/app project changes only
    - 🖥️ **Backend / Dashboard only** — server, API, admin/dashboard changes only
    - 🔀 **Both** — spans app *and* backend/dashboard
 
    Base this on the actual affected areas you find during verification, not just the ticket wording.
 
-5. **Assess impact:**
+6. **Assess impact:**
    - Affected areas (UI, backend, database, integrations, etc.)
    - Priority (Low / Medium / High)
    - Risk level
 
-6. **Recommend a branch** off `develop` (unless the user specifies another base), following the naming convention below.
+7. **Recommend a branch** off `develop` (unless the user specifies another base), following the naming convention below.
 
 ## Branch naming convention
 
@@ -69,6 +71,7 @@ Print exactly this structure:
 
 ```
 ### ✅ Task Analysis
+- Ticket: `<absolute path to the archived copy>` [· related: ENG-2449]
 - Type: [Bug / Feature / Invalid]
 - Status: [Confirmed / Not Reproducible / Already Implemented]
 - Project Scope: [App only / Backend-Dashboard only / Both]
