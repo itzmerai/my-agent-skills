@@ -12,6 +12,8 @@ This is the mirror of `/myscope`. `/myscope` asks *did I change anything I shoul
 ## Rules
 
 - **One requirement per line.** Split combined items. "Gradient used on the highlight card, the logo and sign-in" is three lines, not one. "Users: list, profile, create/edit" is three lines. A line covering two things cannot be marked once.
+- **Never collapse a list into a summary line.** If the ticket lists 9 acceptance criteria, 9 validation strings or 8 edge cases, the checklist has 9, 9 and 8 lines, each with its own verdict and its own citation. "✅ All nine present — a, b, c…" is forbidden, even when every item passes, even when the items are short, and even for long tickets. Grouping items into one line hides which one failed and leaves nothing to cite per item. Long output is fine here; a missing line is not.
+- **Line counts must match the ticket.** Each section header states the count from the ticket, e.g. `## Acceptance criteria (8)`, and that section must contain exactly that many lines (more if splitting produced extra lines). Before printing, count each section against the ticket. If they differ, a line was merged or dropped, so fix it before reporting.
 - **Every line is true or false.** "Font is Poppins", not "Font: Poppins". If you cannot phrase it as a claim about the code, it is not a checklist line — it is context.
 - **Turn instructions into outcomes.** "Use the real data" becomes "Real data is used everywhere, with no placeholders left." You verify end states, not intentions.
 - **Read the code, not the file tree.** A file named `theme.css` existing proves nothing about the font. The declaration inside it does. Open what you cite.
@@ -61,8 +63,10 @@ Base branch: `develop` (diffed with `git diff develop...HEAD`)
 - ❌ [requirement] — [where you looked and found nothing]
 - ✅ [requirement] **(pre-existing)** — `path/file.ext:7`, unchanged in this branch
 
-## [Next section]
-- ...
+## [Next section] (N from the ticket)
+- ✅ [item 1] — `path/file.ext:12` [what it shows]
+- ✅ [item 2] — `path/file.ext:13` [what it shows]
+- ... one line per item, never "All N present"
 
 ## Summary
 ✅ N · ⚠️ N · ❌ N
@@ -122,6 +126,27 @@ Style to match (taken from the mobile app):
 ```
 
 Four bullets became thirteen lines. The gradient bullet split three ways, Users split three ways, and the last three items were lifted out of Scope — they were never scope, they were rules and a done-when, misnested in the original.
+
+## Example — no summary lines
+
+**Wrong** (nine requirements collapsed into one line):
+
+```
+## Validation — 9 draft strings
+- ✅ All nine pt_PT strings present verbatim — warehouse code, warehouse name, archive warehouse, ...
+```
+
+**Right** (one line per string, each with its own evidence):
+
+```
+## Validation (9)
+- ✅ pt_PT string for warehouse code is present verbatim — `lang/pt_PT/validation.php:14` `"..."`
+- ✅ pt_PT string for warehouse name is present verbatim — `lang/pt_PT/validation.php:15` `"..."`
+- ✅ pt_PT string for archive warehouse is present verbatim — `lang/pt_PT/validation.php:16` `"..."`
+- ... (all nine, one per line)
+```
+
+The same applies to acceptance criteria, edge cases, scenarios, fields, routes and any other list in the ticket. Each acceptance criterion gets its own line stating its scenario and expected result (e.g. "Finalizing an invoice for 3 units moves stock 10 → 7"), with the code or test that proves it.
 
 ## Goal
 
