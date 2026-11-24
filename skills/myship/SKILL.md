@@ -33,6 +33,9 @@ That parenthetical is the defect. Resolving it is the whole job.
 - **The brief's Changes list is the staged set, nothing else.** Not `git status`, not the diff. If `/myatomicgit` held a file back, that file is not part of this pull request and must not be described as though it were — a brief that claims work the diff does not contain is worse than an incomplete one, because it reads as finished.
 - **Carry the left-unstaged list into the brief's notes**, in `/myatomicgit`'s own words. It already did that analysis; re-deriving it is how the two lists drift apart.
 - **The commands fence is git commands and blank lines. Nothing else.** `/myatomicgit`'s rule, unchanged: no `#` comments, no co-authored trailer, no prose. One `git add` per line, so a line can be dropped without re-editing the command.
+- **The brief is `/mypr`'s template, structurally verbatim.** Every heading it defines, at the level it defines, in its order, with none added and none dropped: the `#` title, `**Base branch:**`, `## Description`, `## Related Issue(s)`, `## Changes`, `## Testing Instructions`, `**Tested on:**`, `## Checklist` with its five boxes. Only the *content* is yours to write. A brief that reorganises itself around the change is the single most common way this skill drifts — it reads better and is worse, because the template is what the reviewer's eye and the team's tooling expect to find.
+- **Extra material goes inside the existing sections.** Real briefs often have more to say — why a previous fix missed it, what is deliberately out of scope, a CI caveat. All of that belongs in `## Description` or the template's own additional-notes slot at the bottom. Never as a new top-level heading, and never by renaming `## Testing Instructions` to something shorter.
+- **The Units block is `/myatomicgit`'s markdown table, unchanged.** Three columns, one row per unit, then the `Order:` line. Not a per-unit list, not `<br>`-joined file lists, not divider rules between units — those render as a wall in a terminal and lose the column alignment that makes the grouping readable at a glance.
 - **Chain the skills, do not reimplement them.** No grouping logic, no commit-message style, no brief content originates here. If a commit message reads wrong, that is `/myatomicgit`; if the testing steps are thin, that is `/mypr`. Fix it there.
 - **Merge the outputs; do not stream them.** This is the one place `/myship` departs from `/myloop`, which prints every stage verbatim. Here a faithful stream reproduces the exact contradiction above. Both skills still run in full and nothing they decide is discarded — only their *presentation* is combined.
 - **Run straight through. Never ask permission to continue.** Invoking `/myship` is the go-ahead for both halves. No "shall I run /mypr now?", no pause between them.
@@ -51,6 +54,7 @@ That parenthetical is the defect. Resolving it is the whole job.
    - one `git push`, last in the block
    - Changes == the staged set, exactly
    - the left-unstaged files named in the brief's notes and absent from every `git add`
+   - every template heading present, at its own level, in order — title, Base branch, Description, Related Issue(s), Changes, Testing Instructions, Tested on, Checklist — with nothing invented alongside them
 
 ## Output format
 
@@ -87,7 +91,35 @@ git push -u origin <current-branch>
 ### 📋 PR brief
 
 ```markdown
-<the /mypr template, filled>
+# <Title — brief but descriptive>
+
+**Base branch:** <develop>
+
+## Description
+<what it does, why, relevant context — and anything extra worth saying>
+
+## Related Issue(s)
+Fixes <TICKET>
+
+## Changes
+- <staged file>
+- <staged file>
+
+## Testing Instructions
+1. <step>
+2. <step>
+
+**Tested on:**
+- Other: <browser / OS / suite>        <!-- Android + iOS rows only for mobile -->
+
+## Checklist
+- [ ] Code builds cleanly on <web / Android / iOS>
+- [ ] All tests pass locally
+- [ ] No new lint errors or warnings
+- [ ] Self-reviewed the code
+- [ ] Documentation updated (if needed)
+
+<!-- Additional notes: out of scope, caveats, anything the reviewer should know -->
 ```
 
 ### ▶️ Next
